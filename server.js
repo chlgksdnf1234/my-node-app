@@ -14,8 +14,8 @@ app.post('/api/gemini', async (req, res) => {
 
   const { prompt } = req.body;
 
-  // 사용할 모델 버전 목록 (최신 모델 우선 시도 후 실패 시 차선책 적용)
-  const models = ['gemini-2.5-flash', 'gemini-1.5-flash-latest', 'gemini-2.0-flash'];
+  // 최신 지정 모델(gemini-2.5-flash) 및 보조 모델 설정
+  const models = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-1.5-flash'];
 
   let lastError = null;
 
