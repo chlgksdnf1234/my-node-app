@@ -3,7 +3,7 @@ const app = express();
 
 app.use(express.json());
 
-// Render 환경 변수에서 안전하게 API 키 로드
+// Render 환경 변수에서 API 키 로드
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // 1. Gemini AI 요청 처리용 서버 API 엔드포인트
@@ -14,31 +14,38 @@ app.post('/api/gemini', async (req, res) => {
 
   const { prompt } = req.body;
 
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
-        })
+  // 사용할 모델 버전 목록 (최신 모델 우선 시도 후 실패 시 차선책 적용)
+  const models = ['gemini-2.5-flash', 'gemini-1.5-flash-latest', 'gemini-2.0-flash'];
+
+  let lastError = null;
+
+  for (const model of models) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
+        return res.json({ text: data.candidates[0].content.parts[0].text });
+      } else {
+        lastError = data.error?.message || `모델 ${model} 호출 실패`;
       }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('Gemini API Error:', data);
-      return res.status(response.status).json({ error: data.error?.message || 'Gemini API 호출 실패' });
+    } catch (err) {
+      lastError = err.message;
     }
-
-    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    res.json({ text: resultText });
-  } catch (error) {
-    console.error('Server Error:', error);
-    res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
   }
+
+  console.error('Gemini API Final Error:', lastError);
+  res.status(500).json({ error: lastError || 'Gemini API 호출에 실패했습니다.' });
 });
 
 // 2. 메인 페이지
