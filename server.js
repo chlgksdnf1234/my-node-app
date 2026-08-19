@@ -38,13 +38,21 @@ app.get('/', (req, res) => {
         }
 
         .container {
-          max-width: 900px;
+          max-width: 1000px;
           margin: 0 auto;
         }
 
         header {
           text-align: center;
           margin-bottom: 40px;
+        }
+
+        /* 메인 제목 크기 확대 및 스타일 */
+        h1 {
+          font-size: 3.2rem;
+          font-weight: 800;
+          margin-bottom: 12px;
+          letter-spacing: -1px;
         }
 
         .tabs {
@@ -69,6 +77,20 @@ app.get('/', (req, res) => {
           background: var(--primary-color);
           color: white;
           border-color: var(--primary-color);
+        }
+
+        /* 2열 레이아웃 (좌: 입력폼, 우: 실시간 미리보기) */
+        .workspace {
+          display: grid;
+          grid-template-columns: 1fr 320px;
+          gap: 24px;
+          align-items: start;
+        }
+
+        @media (max-width: 800px) {
+          .workspace {
+            grid-template-columns: 1fr;
+          }
         }
 
         .content-card {
@@ -97,6 +119,7 @@ app.get('/', (req, res) => {
           background: var(--bg-color);
           color: var(--text-color);
           box-sizing: border-box;
+          font-size: 0.95rem;
         }
 
         .submit-btn {
@@ -116,7 +139,38 @@ app.get('/', (req, res) => {
           cursor: not-allowed;
         }
 
-        /* 결과 미리보기 영역 */
+        /* 실시간 미리보기 영 패널 */
+        .preview-card {
+          background: var(--card-bg);
+          border: 1px solid var(--border-color);
+          border-radius: 16px;
+          padding: 20px;
+          text-align: center;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .preview-card h3 {
+          margin-top: 0;
+          margin-bottom: 15px;
+          font-size: 1.1rem;
+        }
+
+        .preview-canvas-container {
+          width: 270px;
+          height: 480px;
+          margin: 0 auto;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+          background: #000;
+        }
+
+        #previewCanvas {
+          width: 100%;
+          height: 100%;
+        }
+
+        /* 생성 완료 결과 영역 */
         .result-box {
           margin-top: 30px;
           padding: 20px;
@@ -127,25 +181,13 @@ app.get('/', (req, res) => {
           text-align: center;
         }
 
-        .video-container {
+        video {
           width: 270px;
           height: 480px;
-          margin: 20px auto;
           border-radius: 16px;
-          overflow: hidden;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-          background: #000;
-        }
-
-        video {
-          width: 100%;
-          height: 100%;
           object-fit: cover;
-        }
-
-        /* 캔버스 (숨김 렌더링용) */
-        #renderCanvas {
-          display: none;
+          margin: 15px 0;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.2);
         }
 
         .theme-toggle-container {
@@ -173,7 +215,7 @@ app.get('/', (req, res) => {
           border-radius: 8px;
           font-weight: bold;
           cursor: pointer;
-          margin-top: 15px;
+          margin-top: 10px;
           display: inline-block;
           text-decoration: none;
         }
@@ -199,8 +241,8 @@ app.get('/', (req, res) => {
 
       <div class="container">
         <header>
-          <h1>🎬 AI Short-Form Studio</h1>
-          <p>원하는 카테고리를 선택하여 실제로 다운로드 가능한 숏폼 영상을 제작해보세요.</p>
+          <h1>AI 숏폼 스튜디오</h1>
+          <p>원하는 카테고리를 선택하여 실시간 미리보기로 숏폼 영상을 제작해보세요.</p>
         </header>
 
         <div class="tabs">
@@ -209,56 +251,64 @@ app.get('/', (req, res) => {
           <button class="tab-btn" onclick="switchTab('script')">✍️ 대본 기반 TTS</button>
         </div>
 
-        <div class="content-card">
-          <!-- 1. 템플릿 기반 -->
-          <div id="panel-template" class="tab-panel active">
-            <h2>템플릿 기반 숏폼 만들기</h2>
-            <label>제목 및 자막 텍스트</label>
-            <input type="text" id="template-text" value="🔥 오늘 완성하는 나만의 AI 숏폼 영상!">
-            <label>배경 그래픽 테마</label>
-            <select id="template-theme">
-              <option value="purple">보라빛 네온 그라데이션</option>
-              <option value="ocean">시원한 에메랄드 오션</option>
-              <option value="sunset">따뜻한 석양 선셋</option>
-              <option value="dark">시크한 다크 모던</option>
-            </select>
-            <button class="submit-btn" id="btn-template" onclick="generateShortForm('template')">실제 숏폼 영상 생성하기 (5초)</button>
-          </div>
-
-          <!-- 2. AI 롱폼 추출 -->
-          <div id="panel-longform" class="tab-panel">
-            <h2>YouTube / 롱폼 영상 하이라이트 추출</h2>
-            <label>영상 URL 입력</label>
-            <input type="text" id="longform-url" placeholder="https://www.youtube.com/watch?v=...">
-            <label>추출할 하이라이트 자막 메세지</label>
-            <input type="text" id="longform-text" value="📌 롱폼 핵심 요약: 꼭 기억해야 할 3가지 법칙">
-            <button class="submit-btn" id="btn-longform" onclick="generateShortForm('longform')">하이라이트 숏폼 렌더링</button>
-          </div>
-
-          <!-- 3. 대본 기반 -->
-          <div id="panel-script" class="tab-panel">
-            <h2>대본 기반 자동 영상 생성</h2>
-            <label>대본 작성 (TTS 음성 읽기 연동)</label>
-            <textarea id="script-text" rows="4">안녕하세요! AI가 자동으로 만들어준 숏폼 영상입니다. 구독과 좋아요 부탁드립니다!</textarea>
-            <button class="submit-btn" id="btn-script" onclick="generateShortForm('script')">대본 기반 영상+음성 생성</button>
-          </div>
-
-          <!-- 결과 출력 창 -->
-          <div id="result-box" class="result-box">
-            <h3 id="result-title">🎉 영상 생성이 완료되었습니다!</h3>
-            <p id="result-desc"></p>
-
-            <div class="video-container">
-              <video id="generatedVideo" controls autoplay loop></video>
+        <div class="workspace">
+          <!-- 좌측: 작업 입력폼 -->
+          <div class="content-card">
+            <!-- 1. 템플릿 기반 -->
+            <div id="panel-template" class="tab-panel active">
+              <h2>템플릿 기반 숏폼 만들기</h2>
+              <label>제목 및 자막 텍스트</label>
+              <input type="text" id="template-text" value="오늘 완성하는 나만의 AI 숏폼 영상" oninput="updateLivePreview()">
+              <label>배경 그래픽 테마</label>
+              <select id="template-theme" onchange="updateLivePreview()">
+                <option value="purple">보라빛 네온 그라데이션</option>
+                <option value="ocean">시원한 에메랄드 오션</option>
+                <option value="sunset">따뜻한 석양 선셋</option>
+                <option value="dark">시크한 다크 모던</option>
+              </select>
+              <button class="submit-btn" id="btn-template" onclick="generateShortForm('template')">영상 생성하기 (5초)</button>
             </div>
 
-            <a id="downloadBtn" class="download-btn" download="shortform.webm">📥 영상 파일 다운로드 (.webm)</a>
+            <!-- 2. AI 롱폼 추출 -->
+            <div id="panel-longform" class="tab-panel">
+              <h2>YouTube / 롱폼 영상 하이라이트 추출</h2>
+              <label>영상 URL 입력</label>
+              <input type="text" id="longform-url" placeholder="https://www.youtube.com/watch?v=...">
+              <label>추출할 하이라이트 자막 메세지</label>
+              <input type="text" id="longform-text" value="롱폼 핵심 요약: 꼭 기억해야 할 법칙" oninput="updateLivePreview()">
+              <button class="submit-btn" id="btn-longform" onclick="generateShortForm('longform')">하이라이트 숏폼 렌더링</button>
+            </div>
+
+            <!-- 3. 대본 기반 -->
+            <div id="panel-script" class="tab-panel">
+              <h2>대본 기반 자동 영상 생성</h2>
+              <label>대본 작성 (TTS 음성 읽기 연동)</label>
+              <textarea id="script-text" rows="4" oninput="updateLivePreview()">안녕하세요! AI가 자동으로 만들어준 숏폼 영상입니다.</textarea>
+              <button class="submit-btn" id="btn-script" onclick="generateShortForm('script')">대본 기반 영상+음성 생성</button>
+            </div>
+
+            <!-- 결과 출력 창 -->
+            <div id="result-box" class="result-box">
+              <h3 id="result-title">영상 생성이 완료되었습니다!</h3>
+              <p id="result-desc"></p>
+
+              <div>
+                <video id="generatedVideo" controls autoplay loop></video>
+              </div>
+
+              <a id="downloadBtn" class="download-btn" download="shortform.webm">📥 영상 파일 다운로드 (.webm)</a>
+            </div>
+          </div>
+
+          <!-- 우측: 실시간 미리보기 Canvas -->
+          <div class="preview-card">
+            <h3>👁️ 실시간 미리보기</h3>
+            <div class="preview-canvas-container">
+              <canvas id="previewCanvas" width="720" height="1280"></canvas>
+            </div>
           </div>
         </div>
       </div>
-
-      <!-- 렌더링용 숨겨진 Canvas -->
-      <canvas id="renderCanvas" width="720" height="1280"></canvas>
 
       <div class="theme-toggle-container">
         <button class="theme-toggle-btn" onclick="toggleTheme()">
@@ -267,13 +317,23 @@ app.get('/', (req, res) => {
       </div>
 
       <script>
+        let activeTab = 'template';
+        let animationFrameId = null;
+
+        window.onload = () => {
+          updateLivePreview();
+        };
+
         function switchTab(tabName) {
+          activeTab = tabName;
           document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
           document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
           document.getElementById('result-box').style.display = 'none';
           
           event.target.classList.add('active');
           document.getElementById('panel-' + tabName).classList.add('active');
+
+          updateLivePreview();
         }
 
         function toggleTheme() {
@@ -293,7 +353,98 @@ app.get('/', (req, res) => {
           }
         }
 
-        // 브라우저 실시간 Canvas + MediaRecorder 기반 영상 인코딩 엔진
+        // 실시간 미리보기 렌더링 함수
+        function updateLivePreview(progress = 0) {
+          const canvas = document.getElementById('previewCanvas');
+          const ctx = canvas.getContext('2d');
+
+          let text = '';
+          let theme = 'purple';
+
+          if(activeTab === 'template') {
+            text = document.getElementById('template-text').value;
+            theme = document.getElementById('template-theme').value;
+          } else if(activeTab === 'longform') {
+            text = document.getElementById('longform-text').value;
+            theme = 'ocean';
+          } else if(activeTab === 'script') {
+            text = document.getElementById('script-text').value;
+            theme = 'sunset';
+          }
+
+          // 배경 그라데이션
+          let grad;
+          if(theme === 'purple') {
+            grad = ctx.createLinearGradient(0, 0, 720, 1280);
+            grad.addColorStop(0, '#6366f1');
+            grad.addColorStop(1, '#a855f7');
+          } else if(theme === 'ocean') {
+            grad = ctx.createLinearGradient(0, 0, 720, 1280);
+            grad.addColorStop(0, '#06b6d4');
+            grad.addColorStop(1, '#3b82f6');
+          } else if(theme === 'sunset') {
+            grad = ctx.createLinearGradient(0, 0, 720, 1280);
+            grad.addColorStop(0, '#f97316');
+            grad.addColorStop(1, '#ec4899');
+          } else {
+            grad = ctx.createLinearGradient(0, 0, 720, 1280);
+            grad.addColorStop(0, '#111827');
+            grad.addColorStop(1, '#374151');
+          }
+          
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, 720, 1280);
+
+          // 모션 애니메이션 백그라운드
+          const circleY = 640 + Math.sin(progress * Math.PI * 4) * 50;
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+          ctx.beginPath();
+          ctx.arc(360, circleY, 280, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 상단 뱃지
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.roundRect(260, 200, 200, 50, 25);
+          ctx.fill();
+
+          ctx.fillStyle = '#111111';
+          ctx.font = 'bold 24px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('SHORT FORM', 360, 233);
+
+          // 자막 텍스트
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 44px sans-serif';
+          ctx.shadowColor = 'rgba(0,0,0,0.5)';
+          ctx.shadowBlur = 12;
+
+          const words = text.split(' ');
+          let line = '';
+          let y = 580;
+
+          for (let i = 0; i < words.length; i++) {
+            let testLine = line + words[i] + ' ';
+            let metrics = ctx.measureText(testLine);
+            if (metrics.width > 600 && i > 0) {
+              ctx.fillText(line, 360, y);
+              line = words[i] + ' ';
+              y += 60;
+            } else {
+              line = testLine;
+            }
+          }
+          ctx.fillText(line, 360, y);
+          ctx.shadowBlur = 0;
+
+          // 프로그레스 바
+          ctx.fillStyle = 'rgba(255,255,255,0.3)';
+          ctx.fillRect(60, 1150, 600, 12);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(60, 1150, 600 * Math.min(progress, 1), 12);
+        }
+
+        // 실제 숏폼 녹화 인코딩 실행
         async function generateShortForm(type) {
           const btn = document.getElementById('btn-' + type);
           const resultBox = document.getElementById('result-box');
@@ -302,18 +453,9 @@ app.get('/', (req, res) => {
           const downloadBtn = document.getElementById('downloadBtn');
           
           let text = '';
-          let theme = 'purple';
-
-          if(type === 'template') {
-            text = document.getElementById('template-text').value;
-            theme = document.getElementById('template-theme').value;
-          } else if(type === 'longform') {
-            text = document.getElementById('longform-text').value;
-            theme = 'ocean';
-          } else if(type === 'script') {
-            text = document.getElementById('script-text').value;
-            theme = 'sunset';
-          }
+          if(type === 'template') text = document.getElementById('template-text').value;
+          if(type === 'longform') text = document.getElementById('longform-text').value;
+          if(type === 'script') text = document.getElementById('script-text').value;
 
           if (!text.trim()) {
             alert('문구를 입력해 주세요!');
@@ -321,22 +463,18 @@ app.get('/', (req, res) => {
           }
 
           btn.disabled = true;
-          btn.innerHTML = '<span class="spinner"></span> 숏폼 프레임 인코딩 중 (약 5초)...';
+          btn.innerHTML = '<span class="spinner"></span> 영상 인코딩 중 (5초)...';
           resultBox.style.display = 'none';
 
-          // 음성(TTS) 읽기
           if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'ko-KR';
-            utterance.rate = 1.0;
             window.speechSynthesis.speak(utterance);
           }
 
-          // Canvas 영상 렌더링
-          const canvas = document.getElementById('renderCanvas');
-          const ctx = canvas.getContext('2d');
-          const stream = canvas.captureStream(30); // 30 FPS
+          const canvas = document.getElementById('previewCanvas');
+          const stream = canvas.captureStream(30);
           
           let mediaRecorder;
           try {
@@ -357,98 +495,29 @@ app.get('/', (req, res) => {
             resultBox.style.display = 'block';
             resultDesc.innerText = `총 5초 분량의 숏폼 영상 인코딩이 완료되었습니다.`;
             btn.disabled = false;
-            btn.innerText = '실제 숏폼 영상 생성하기';
+            btn.innerText = '영상 생성하기 (5초)';
+            updateLivePreview(0);
           };
 
           mediaRecorder.start();
 
-          // 5초간 Canvas 프레임 애니메이션 생성 (720x1280 숏폼 규격)
           const startTime = Date.now();
-          const duration = 5000; // 5초
+          const duration = 5000;
 
-          function renderFrame() {
+          function animateFrame() {
             const elapsed = Date.now() - startTime;
             const progress = elapsed / duration;
 
-            // 배경 그라데이션
-            let grad;
-            if(theme === 'purple') {
-              grad = ctx.createLinearGradient(0, 0, 720, 1280);
-              grad.addColorStop(0, '#6366f1');
-              grad.addColorStop(1, '#a855f7');
-            } else if(theme === 'ocean') {
-              grad = ctx.createLinearGradient(0, 0, 720, 1280);
-              grad.addColorStop(0, '#06b6d4');
-              grad.addColorStop(1, '#3b82f6');
-            } else if(theme === 'sunset') {
-              grad = ctx.createLinearGradient(0, 0, 720, 1280);
-              grad.addColorStop(0, '#f97316');
-              grad.addColorStop(1, '#ec4899');
-            } else {
-              grad = ctx.createLinearGradient(0, 0, 720, 1280);
-              grad.addColorStop(0, '#111827');
-              grad.addColorStop(1, '#374151');
-            }
-            
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, 720, 1280);
-
-            // 움직이는 원형 그래픽 효과 (동적 애니메이션)
-            const circleY = 640 + Math.sin(progress * Math.PI * 4) * 50;
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-            ctx.beginPath();
-            ctx.arc(360, circleY, 280, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 상단 뱃지
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.roundRect(260, 200, 200, 50, 25);
-            ctx.fill();
-
-            ctx.fillStyle = '#111111';
-            ctx.font = 'bold 24px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('SHORT FORM', 360, 233);
-
-            // 중앙 자막 텍스트 (줄바꿈 처리)
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 44px sans-serif';
-            ctx.shadowColor = 'rgba(0,0,0,0.5)';
-            ctx.shadowBlur = 12;
-
-            const words = text.split(' ');
-            let line = '';
-            let y = 580;
-
-            for (let i = 0; i < words.length; i++) {
-              let testLine = line + words[i] + ' ';
-              let metrics = ctx.measureText(testLine);
-              if (metrics.width > 600 && i > 0) {
-                ctx.fillText(line, 360, y);
-                line = words[i] + ' ';
-                y += 60;
-              } else {
-                line = testLine;
-              }
-            }
-            ctx.fillText(line, 360, y);
-            ctx.shadowBlur = 0; // 그림자 초기화
-
-            // 하단 프로그레스 바
-            ctx.fillStyle = 'rgba(255,255,255,0.3)';
-            ctx.fillRect(60, 1150, 600, 12);
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(60, 1150, 600 * Math.min(progress, 1), 12);
+            updateLivePreview(progress);
 
             if (elapsed < duration) {
-              requestAnimationFrame(renderFrame);
+              requestAnimationFrame(animateFrame);
             } else {
               mediaRecorder.stop();
             }
           }
 
-          renderFrame();
+          animateFrame();
         }
       </script>
     </body>
