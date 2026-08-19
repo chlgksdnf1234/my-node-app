@@ -3,9 +3,45 @@ const app = express();
 
 app.use(express.json());
 
-// Render 등 서버 환경 변수에서 안전하게 API Key를 불러옵니다.
+// Render 환경 변수에서 안전하게 API 키 로드
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
+// 1. Gemini AI 요청 처리용 서버 API 엔드포인트
+app.post('/api/gemini', async (req, res) => {
+  if (!GEMINI_API_KEY) {
+    return res.status(500).json({ error: '서버에 GEMINI_API_KEY가 설정되지 않았습니다.' });
+  }
+
+  const { prompt } = req.body;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Gemini API Error:', data);
+      return res.status(response.status).json({ error: data.error?.message || 'Gemini API 호출 실패' });
+    }
+
+    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    res.json({ text: resultText });
+  } catch (error) {
+    console.error('Server Error:', error);
+    res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
+  }
+});
+
+// 2. 메인 페이지
 app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="ko">
@@ -179,7 +215,6 @@ app.get('/', (req, res) => {
   </div>
 
   <script>
-    const API_KEY = "${GEMINI_API_KEY || ''}";
     let activeTab = 'template';
 
     window.onload = function() { updateLivePreview(); };
@@ -189,11 +224,7 @@ app.get('/', (req, res) => {
       const btn = document.getElementById('themeBtn');
       body.classList.toggle('light-mode');
       
-      if (body.classList.contains('light-mode')) {
-        btn.innerText = '다크 모드로 변경';
-      } else {
-        btn.innerText = '라이트 모드로 변경';
-      }
+      btn.innerText = body.classList.contains('light-mode') ? '다크 모드로 변경' : '라이트 모드로 변경';
     }
 
     function switchTab(tabName, evt) {
@@ -207,8 +238,18 @@ app.get('/', (req, res) => {
       updateLivePreview();
     }
 
+    async function callBackendGemini(promptText) {
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: promptText })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'API 요청에 실패했습니다.');
+      return data.text;
+    }
+
     async function askGeminiSummary() {
-      if (!API_KEY) return alert('Render 대시보드 Environment 메뉴에 GEMINI_API_KEY를 등록해 주세요.');
       const text = document.getElementById('longform-input').value.trim();
       if (!text) return alert('요약할 글을 입력해주세요.');
       
@@ -217,23 +258,12 @@ app.get('/', (req, res) => {
       btn.innerText = 'AI가 분석 중입니다...';
 
       try {
-        const response = await fetch(\`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\${API_KEY}\`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: "다음 글을 숏폼 영상 자막용으로 20자 이내 임팩트 있는 한 문장으로 요약해줘: " + text }] }]
-          })
-        });
-        const data = await response.json();
-        if(data.candidates && data.candidates[0]) {
-          const result = data.candidates[0].content.parts[0].text;
-          document.getElementById('longform-text').value = result.replace(/\\n/g, '').trim();
-          updateLivePreview();
-        } else {
-          alert('AI 요청 응답 오류가 발생했습니다. API 키 설정을 확인해 주세요.');
-        }
+        const prompt = "다음 글을 숏폼 영상 자막용으로 20자 이내 임팩트 있는 한 문장으로 요약해줘: " + text;
+        const result = await callBackendGemini(prompt);
+        document.getElementById('longform-text').value = result.replace(/\\n/g, '').trim();
+        updateLivePreview();
       } catch(e) {
-        alert('AI 요약 요청 중 네트워크 에러가 발생했습니다.');
+        alert('AI 요약 요청 중 오류가 발생했습니다: ' + e.message);
       } finally {
         btn.disabled = false;
         btn.innerText = 'AI 핵심 요약 실행';
@@ -241,7 +271,6 @@ app.get('/', (req, res) => {
     }
 
     async function askGeminiScript() {
-      if (!API_KEY) return alert('Render 대시보드 Environment 메뉴에 GEMINI_API_KEY를 등록해 주세요.');
       const topic = document.getElementById('script-topic').value.trim();
       if (!topic) return alert('주제를 입력해주세요.');
 
@@ -250,23 +279,12 @@ app.get('/', (req, res) => {
       btn.innerText = 'AI가 대본을 쓰는 중입니다...';
 
       try {
-        const response = await fetch(\`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\${API_KEY}\`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: "숏폼 영상에 읽어줄 5초 분량의 짧고 강렬한 대본 2문장 작성해줘. 주제: " + topic }] }]
-          })
-        });
-        const data = await response.json();
-        if(data.candidates && data.candidates[0]) {
-          const result = data.candidates[0].content.parts[0].text;
-          document.getElementById('script-text').value = result.replace(/\\n/g, ' ').trim();
-          updateLivePreview();
-        } else {
-          alert('AI 요청 응답 오류가 발생했습니다. API 키 설정을 확인해 주세요.');
-        }
+        const prompt = "숏폼 영상에 읽어줄 5초 분량의 짧고 강렬한 대본 2문장 작성해줘. 주제: " + topic;
+        const result = await callBackendGemini(prompt);
+        document.getElementById('script-text').value = result.replace(/\\n/g, ' ').trim();
+        updateLivePreview();
       } catch(e) {
-        alert('AI 대본 생성 요청 중 오류가 발생했습니다.');
+        alert('AI 대본 생성 요청 중 오류가 발생했습니다: ' + e.message);
       } finally {
         btn.disabled = false;
         btn.innerText = 'AI 대본 작성하기';
