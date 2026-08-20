@@ -3,7 +3,6 @@ const app = express();
 
 app.use(express.json());
 
-// 사용자 이름별로 묵상 및 퀴즈 로그 누적
 let sharedQtRecords = [];
 let sharedQuizRecords = [];
 
@@ -87,7 +86,7 @@ app.get('/', (req, res) => {
       { ref: "사 40:31", verse: "오직 여호와를 앙망하는 자는 새 힘을 얻으리니 독수리가 날개 치며 올라감 같을 것이요...", lead: "새 힘", questions: ["요즘 나를 가장 지치고 무기력하게 만드는 원인은 무엇인가요?", "하나님을 간절히 바랄 때 주시는 '새 힘'을 오늘 구해보세요."] },
       { ref: "요 15:5", verse: "나는 포도나무요 너희는 가지라 그가 내 안에, 내가 그 안에 거하면 사람이 열매를 많이 맺나니...", lead: "거함", questions: ["바쁜 일상 속에서 예수님과 온전히 연결되어 있다고 느끼나요?", "오늘 5분이라도 가지가 나무에 붙어있듯 주님 안에 머무는 시간은 언제로 할까요?"] },
       { ref: "마 5:16", verse: "이같이 너희 빛이 사람 앞에 비치게 하여 그들로 너희 착한 행실을 보고 하늘에 계신 너희 아버지께 영광을 돌리게 하라.", lead: "빛", questions: ["내가 속한 가정이나 직장에서 나는 어떤 빛을 내고 있나요?", "오늘 나의 작은 친절이나 행실이 누군가에게 어떻게 위로가 될 수 있을까요?"] },
-      { ref: "롬 5:8", verse: "우리가 아직 죄인 되었을 때에 그리스도께서 우리를 위하여 죽으심으로 하나님께서 우리에 대한 자기의 사랑을 확증하셨느니라.", lead: "확증", questions: ["나의 부족함에도 불구하고 베푸신 크신 사랑을 묵상해보세요.", "그 십자가의 사랑이 오늘 나의 자존감을 어떻게 회복시키나요?"] },
+      { ref: "롬 5:8", verse: "우리가 아직 죄인 되었을 때에 그리스도께서 우리를 위하여 죽으심으로 하나님께서 우리에 대한 자기의 사랑을 확증하셨느니라.", lead: "확증", questions: ["나의 부족함에도 불구하고 베푸신 크신 사랑을 묵상해보세요.", "그 십자가의 사랑이 오늘 나의 자존감이 어떻게 회복시키나요?"] },
       { ref: "시 139:14", verse: "내가 주께 감사하옴은 나를 지으심이 심히 기묘하심이라 주께서 하시는 일이 기이함을 내 영혼이 잘 아나이다.", lead: "창조", questions: ["내 외모나 성격 중 마음에 들지 않아 불평했던 부분이 있나요?", "하나님의 걸작품인 나 자신을 있는 그대로 사랑하고 칭찬해 보세요."] },
       { ref: "골 3:2", verse: "위의 것을 생각하고 땅의 것을 생각하지 말라.", lead: "시선", questions: ["내 시선과 생각이 너무 세상적인 가치(돈, 명예)에만 쏠려 있지 않나요?", "오늘 나의 초점을 하나님 나라와 영원한 것에 맞추려면 어떻게 해야 할까요?"] },
       { ref: "약 1:5", verse: "너희 중에 누구든지 지혜가 부족하거든 모든 사람에게 후히 주시고 꾸짖지 아니하시는 하나님께 구하라 그리하면 주시리라.", lead: "지혜", questions: ["현재 지혜롭게 풀어나가야 할 인간관계나 문제 상황이 있나요?", "내 생각대로 하지 않고, 하나님의 지혜를 구하는 기도를 드리세요."] },
@@ -95,7 +94,17 @@ app.get('/', (req, res) => {
       { ref: "애 3:22-23", verse: "여호와의 인자와 긍휼이 무궁하시므로 우리가 진멸되지 아니함이니이다 이것들이 아침마다 새로우니 주의 성실하심이 크시도소이다.", lead: "새로움", questions: ["어제 지은 죄나 실수 때문에 오늘도 마음이 무겁나요?", "아침마다 새롭게 부어주시는 자비와 긍휼을 찬양해보세요."] }
     ];
 
-    const QUIZ_DATA = [
+    const ALL_QUIZ_POOL = [
+      { cat: "구약", q: "노아의 방주에 함께 탄 가족은 모두 몇 명이었나요?", type: "choice", opts: ["4명", "6명", "8명", "10명"], a: 2, ex: "노아 부부와 세 아들 부부, 총 8명이 탔습니다." },
+      { cat: "구약", q: "이스라엘 백성이 홍해를 건널 때 지도자는 누구였나요?", type: "choice", opts: ["아브라함", "모세", "여호수아", "다윗"], a: 1, ex: "모세가 지팡이를 들어 홍해를 갈랐습니다." },
+      { cat: "구약", q: "다윗이 물맷돌로 쓰러뜨린 블레셋 장수의 이름은?", type: "choice", opts: ["골리앗", "삼손", "사울", "아각"], a: 0, ex: "다윗은 물맷돌 하나로 거인 골리앗을 쓰러뜨렸습니다." },
+      { cat: "구약", q: "요셉이 형들에 의해 팔려간 나라는 어디인가요?", type: "choice", opts: ["바벨론", "애굽", "앗시리아", "페르시아"], a: 1, ex: "요셉은 애굽으로 팔려갔고 훗날 총리가 됩니다." },
+      { cat: "구약", q: "십계명을 받은 산의 이름은 무엇인가요?", type: "choice", opts: ["감람산", "시내산", "시온산", "갈멜산"], a: 1, ex: "모세는 시내산에서 십계명을 받았습니다." },
+      { cat: "신약", q: "예수님이 태어나신 마을은 어디인가요?", type: "choice", opts: ["나사렛", "예루살렘", "베들레헴", "가버나움"], a: 2, ex: "예수님은 베들레헴에서 태어나셨습니다." },
+      { cat: "신약", q: "은 삼십에 예수님을 배반한 제자는?", type: "choice", opts: ["베드로", "가룟 유다", "도마", "안드레"], a: 1, ex: "가룟 유다가 예수님을 넘겨주었습니다." },
+      { cat: "신약", q: "예수님이 물을 포도주로 바꾸신 기적이 일어난 곳은?", type: "choice", opts: ["가나", "가버나움", "베다니", "갈릴리"], a: 0, ex: "가나의 혼인 잔치에서 일어난 첫 표적입니다." },
+      { cat: "신약", q: "오병이어로 먹이신 남자의 수는 약 몇 명이었나요?", type: "choice", opts: ["3천명", "4천명", "5천명", "7천명"], a: 2, ex: "약 5천 명이 먹고도 12광주리가 남았습니다." },
+      { cat: "신약", q: "선한 사마리아인 비유에서 다친 자를 도운 사람은?", type: "choice", opts: ["제사장", "레위인", "사마리아인", "바리새인"], a: 2, ex: "유대인들에게 천대받던 사마리아인이 그를 도왔습니다." },
       { cat: "넌센스", q: "김목민의 연애 횟수는??", type: "choice", opts: ["1회", "2회", "3회", "4회"], a: 3, ex: "꼴에 생각보다 많이 했습니다." },
       { cat: "넌센스", q: "김목민의 생일은??", type: "choice", opts: ["5월5일", "7월3일", "6월4일", "12월25일"], a: 2, ex: "김목민은 6월4일에 모 박경미 부 김명종사이에서 태어났습니다." },
       { cat: "넌센스", q: "김목민의 키는??", type: "choice", opts: ["163cm", "171cm", "168cm", "183cm"], a: 2, ex: "김목민의 키는 신검 기준 170cm이지만 이후 스트레스로 인해 2cm가 줄어 168cm입니다." },
@@ -114,6 +123,7 @@ app.get('/', (req, res) => {
       const [tab, setTab] = useState("qt");
       const [isDark, setIsDark] = useState(false);
       const [isAdminOpen, setIsAdminOpen] = useState(false);
+      const [isMapOpen, setIsMapOpen] = useState(false);
 
       useEffect(() => {
         const savedTheme = localStorage.getItem('hanshin-qt-theme');
@@ -143,7 +153,6 @@ app.get('/', (req, res) => {
 
       const C = isDark ? darkTheme : lightTheme;
 
-      // 이름 입력 전 첫 화면
       if (!userName) {
         return (
           <div style={{ background: C.paper, minHeight: "100vh", fontFamily: SANS, color: C.ink }} className="flex items-center justify-center p-5">
@@ -172,7 +181,13 @@ app.get('/', (req, res) => {
       return (
         <div style={{ background: C.paper, minHeight: "100vh", fontFamily: SANS, color: C.ink }} className="w-full relative pb-10">
           <div className="max-w-xl mx-auto px-5 pt-8 pb-16">
-            <Header C={C} userName={userName} onOpenAdmin={() => setIsAdminOpen(true)} onChangeUser={() => setUserName(null)} />
+            <Header 
+              C={C} 
+              userName={userName} 
+              onOpenAdmin={() => setIsAdminOpen(true)} 
+              onChangeUser={() => setUserName(null)} 
+              onOpenMap={() => setIsMapOpen(true)}
+            />
             <TabBar tab={tab} setTab={setTab} C={C} />
             {tab === "qt" ? <QTView C={C} userName={userName} /> : <QuizView C={C} userName={userName} />}
           </div>
@@ -187,14 +202,21 @@ app.get('/', (req, res) => {
           </button>
 
           {isAdminOpen && <AdminModal C={C} onClose={() => setIsAdminOpen(false)} />}
+          {isMapOpen && <MapModal C={C} onClose={() => setIsMapOpen(false)} />}
         </div>
       );
     }
 
-    function Header({ C, userName, onOpenAdmin, onChangeUser }) {
+    function Header({ C, userName, onOpenAdmin, onChangeUser, onOpenMap }) {
       return (
         <div className="mb-7 relative">
-          <div style={{ position: 'absolute', top: 0, right: 0, display: 'flex', gap: '6px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <button 
+              onClick={onOpenMap}
+              style={{ background: C.boxBg, border: \`1px solid \${C.line}\`, color: C.goldDeep, fontSize: 11, padding: '4px 10px', borderRadius: 4, fontWeight: 'bold' }}
+            >
+              🗺️ 한신대학교 채플실 찾아가는 길
+            </button>
             <button 
               onClick={onOpenAdmin}
               style={{ background: C.boxBg, border: \`1px solid \${C.line}\`, color: C.ink, fontSize: 11, padding: '4px 10px', borderRadius: 4 }}
@@ -232,9 +254,10 @@ app.get('/', (req, res) => {
     }
 
     function QTView({ C, userName }) {
-      const dayOfMonth = new Date().getDate();
-      const idx = (dayOfMonth - 1) % QT_DATA.length;
-      const entry = QT_DATA[idx];
+      const [entry] = useState(() => {
+        const randomIndex = Math.floor(Math.random() * QT_DATA.length);
+        return QT_DATA[randomIndex];
+      });
       
       const [journal, setJournal] = useState("");
       const [savedAt, setSavedAt] = useState(null);
@@ -247,7 +270,7 @@ app.get('/', (req, res) => {
         fetch('/api/qt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: userName, date: todayStr(), text: journal, timestamp: now })
+          body: JSON.stringify({ name: userName, date: todayStr(), text: \`[\${entry.ref}] \${journal}\`, timestamp: now })
         }).catch(err => console.error(err));
       }
 
@@ -288,6 +311,11 @@ app.get('/', (req, res) => {
     }
 
     function QuizView({ C, userName }) {
+      const [quizList] = useState(() => {
+        const shuffled = [...ALL_QUIZ_POOL].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, 5);
+      });
+
       const [i, setI] = useState(0);
       const [selected, setSelected] = useState(null);
       const [textInput, setTextInput] = useState("");
@@ -295,8 +323,8 @@ app.get('/', (req, res) => {
       const [score, setScore] = useState(0);
       const [finished, setFinished] = useState(false);
       
-      const total = QUIZ_DATA.length;
-      const q = QUIZ_DATA[i];
+      const total = quizList.length;
+      const q = quizList[i];
 
       function choose(optIdx) {
         if (selected !== null) return;
@@ -333,7 +361,7 @@ app.get('/', (req, res) => {
       }
 
       function restart() {
-        setI(0); setSelected(null); setTextInput(""); setIsTextCorrect(null); setScore(0); setFinished(false);
+        window.location.reload();
       }
 
       if (finished) {
@@ -342,7 +370,7 @@ app.get('/', (req, res) => {
             <p style={{ color: C.goldDeep, fontSize: 12, letterSpacing: "0.1em" }}>QUIZ COMPLETE</p>
             <p style={{ fontFamily: SERIF, fontSize: 40, margin: "10px 0 6px", color: C.ink }}>{score} / {total}</p>
             <p style={{ color: C.inkSoft, fontSize: 14, marginBottom: 24 }}>퀴즈를 모두 마치고 기록이 제출되었습니다!</p>
-            <button onClick={restart} style={{ background: C.ink, color: C.paper, fontSize: 13, padding: "10px 20px", borderRadius: 4 }}>🔄 다시 풀기</button>
+            <button onClick={restart} style={{ background: C.ink, color: C.paper, fontSize: 13, padding: "10px 20px", borderRadius: 4 }}>🔄 새로운 퀴즈 풀기</button>
           </div>
         );
       }
@@ -419,6 +447,57 @@ app.get('/', (req, res) => {
       );
     }
 
+    function MapModal({ C, onClose }) {
+      return (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+          <div style={{ background: C.boxBg, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 8, width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto', padding: 24 }}>
+            <div className="flex justify-between items-center mb-3">
+              <h2 style={{ fontFamily: SERIF, fontSize: 18, fontWeight: 700 }}>🗺️ 한신대학교 채플실 찾아가는 길</h2>
+              <button onClick={onClose} style={{ fontSize: 18, fontWeight: 'bold' }}>✕</button>
+            </div>
+            
+            <p style={{ fontSize: 13, color: C.inkSoft, marginBottom: 12 }}>
+              경기도 오산시 한신대길 137 한신대학교 캠퍼스 내에 위치해 있습니다.
+            </p>
+
+            {/* 지도 이미지 영역 (OpenStreetMap 기반 임베디드 뷰) */}
+            <div style={{ width: '100%', height: '280px', borderRadius: 6, overflow: 'hidden', border: \`1px solid \${C.line}\`, marginBottom: 14 }}>
+              <iframe 
+                width="100%" 
+                height="100%" 
+                frameBorder="0" 
+                scrolling="no" 
+                marginHeight="0" 
+                marginWidth="0" 
+                src="https://www.openstreetmap.org/export/embed.html?bbox=127.0200%2C37.1910%2C127.0250%2C37.1950&amp;layer=mapnik&amp;marker=37.1933281%2C127.0225987"
+                style={{ border: 0 }}
+              ></iframe>
+            </div>
+
+            <div style={{ background: C.paper, border: \`1px solid \${C.line}\`, borderRadius: 6, padding: '12px 14px', fontSize: 13, lineHeight: 1.6 }} className="mb-4">
+              <p style={{ fontWeight: 'bold', marginBottom: 4, color: C.goldDeep }}>📍 찾아오시는 안내</p>
+              <ul style={{ paddingLeft: '16px', listStyleType: 'disc', color: C.inkSoft }}>
+                <li>정문 진입 후 중앙도서관 및퍼시픽관 방향으로 직진</li>
+                <li>교목실 및 채플 안내 표지판을 따라 도보 이동</li>
+                <li>대중교통 이용 시 오산역 또는 병점역에서 시내버스 환승</li>
+              </ul>
+            </div>
+
+            <div className="flex justify-end">
+              <a 
+                href="https://www.google.com/maps/place/%ED%95%9C%EC%8B%A0%EB%8C%80%ED%95%99%EA%B5%90/data=!4m6!3m5!1s0x357b4116d0196943:0xb56a9d5a27fd63eb!8m2!3d37.1933281!4d127.0225987!16s%2Fm%2F06w5yct" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ background: C.ink, color: C.paper, fontSize: 13, padding: '8px 16px', borderRadius: 4, textDecoration: 'none', display: 'inline-block' }}
+              >
+                구글 지도에서 크게 보기 ↗
+              </a>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     function AdminModal({ C, onClose }) {
       const [id, setId] = useState("");
       const [pw, setPw] = useState("");
@@ -447,7 +526,6 @@ app.get('/', (req, res) => {
           .catch(err => console.error(err));
       }
 
-      // 등록된 모든 이름 목록 추출 (중복 제거)
       const allNames = ["전체보기", ...Array.from(new Set([...qtRecords.map(r => r.name), ...quizRecords.map(r => r.name)]))];
 
       const filteredQt = selectedName === "전체보기" ? qtRecords : qtRecords.filter(r => r.name === selectedName);
