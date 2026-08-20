@@ -72,33 +72,17 @@ app.get('/', (req, res) => {
       { ref: "애 3:22-23", verse: "여호와의 인자와 긍휼이 무궁하시므로 우리가 진멸되지 아니함이니이다 이것들이 아침마다 새로우니 주의 성실하심이 크시도소이다.", lead: "새로움", questions: ["어제 지은 죄나 실수 때문에 오늘도 마음이 무겁나요?", "아침마다 새롭게 부어주시는 자비와 긍휼을 찬양해보세요."] }
     ];
 
-    // ---- 퀴즈 데이터 70제 ----
+    // ---- 요청하신 김목민 넌센스 퀴즈 데이터 ----
     const QUIZ_DATA = [
-      { cat: "넌센스", q: "김목민의 연애 횟수는??", opts: ["1회", "2회", "3회", "4회"], a: 3, ex: "꼴에 생각보다 많이 했습니다." }
+      { cat: "넌센스", q: "김목민의 연애 횟수는??", opts: ["1회", "2회", "3회", "4회"], a: 3, ex: "꼴에 생각보다 많이 했습니다." },
       { cat: "넌센스", q: "김목민의 생일은??", opts: ["5월5일", "7월3일", "6월4일", "12월25일"], a: 2, ex: "김목민은 6월4일에 모 박경미 부 김명종사이에서 태어났습니다." },
       { cat: "넌센스", q: "김목민의 키는??", opts: ["163cm", "171cm", "168cm", "183cm"], a: 2, ex: "김목민의 키는 신검 기준 170cm이지만 이후 스트레스로 인해 2cm가 줄어 168cm입니다." },
       { cat: "넌센스", q: "김목민의 고향은??", opts: ["해남", "완도", "전복", "광주"], a: 1, ex: "김목민은 전복의 도시 완도에서 2001년 06년 04일에 출생하고 2016년도까지 거주했습니다." }
-      { cat: "신약", q: "예수님이 죽은 지 나흘 된 자를 살리신 기적의 주인공은?", opts: ["야이로의 딸", "나사로", "과부의 아들", "도르가"], a: 1, ex: "예수님은 베다니의 나사로를 무덤에서 살리셨습니다." }
     ];
-
-    function getTodaySeed() {
-      const d = new Date();
-      const start = new Date(d.getFullYear(), 0, 0);
-      return Math.floor((d - start) / 86400000) + d.getFullYear();
-    }
 
     function todayStr() {
       const d = new Date();
       return \`\${d.getFullYear()}-\${String(d.getMonth() + 1).padStart(2, "0")}-\${String(d.getDate()).padStart(2, "0")}\`;
-    }
-
-    function seededRandom(seed) {
-      return function() {
-        var t = seed += 0x6D2B79F5;
-        t = Math.imul(t ^ t >>> 15, t | 1);
-        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-        return ((t ^ t >>> 14) >>> 0) / 4294967296;
-      }
     }
 
     function App() {
@@ -160,7 +144,7 @@ app.get('/', (req, res) => {
           </button>
           <button onClick={() => setTab("quiz")} className="flex items-center gap-1.5 pb-3 transition-colors"
             style={{ borderBottom: tab === "quiz" ? \`2px solid \${C.ink}\` : "2px solid transparent", marginBottom: -1, color: tab === "quiz" ? C.ink : C.inkSoft, fontWeight: tab === "quiz" ? 700 : 500 }}>
-            📖 성경 퀴즈 (5제)
+            🎯 김목민 퀴즈
           </button>
         </div>
       );
@@ -256,25 +240,13 @@ app.get('/', (req, res) => {
     }
 
     function QuizView({ C }) {
-      const dailyQuizzes = useMemo(() => {
-        const seed = getTodaySeed();
-        const rand = seededRandom(seed);
-        
-        let shuffled = [...QUIZ_DATA];
-        for (let j = shuffled.length - 1; j > 0; j--) {
-          const k = Math.floor(rand() * (j + 1));
-          [shuffled[j], shuffled[k]] = [shuffled[k], shuffled[j]];
-        }
-        return shuffled.slice(0, 5);
-      }, []);
-
       const [i, setI] = useState(0);
       const [selected, setSelected] = useState(null);
       const [score, setScore] = useState(0);
       const [finished, setFinished] = useState(false);
       
-      const total = dailyQuizzes.length;
-      const q = dailyQuizzes[i];
+      const total = QUIZ_DATA.length;
+      const q = QUIZ_DATA[i];
 
       function choose(optIdx) {
         if (selected !== null) return;
@@ -295,7 +267,7 @@ app.get('/', (req, res) => {
           <div className="text-center py-10" style={{ background: C.boxBg, borderRadius: 8, padding: 30, border: \`1px solid \${C.line}\` }}>
             <p style={{ color: C.goldDeep, fontSize: 12, letterSpacing: "0.1em" }}>QUIZ COMPLETE</p>
             <p style={{ fontFamily: SERIF, fontSize: 40, margin: "10px 0 6px", color: C.ink }}>{score} / {total}</p>
-            <p style={{ color: C.inkSoft, fontSize: 14, marginBottom: 24 }}>오늘의 성경 퀴즈를 모두 마쳤습니다! 은혜로운 하루 보내세요.</p>
+            <p style={{ color: C.inkSoft, fontSize: 14, marginBottom: 24 }}>김목민 퀴즈를 모두 마쳤습니다! 수고하셨습니다.</p>
             <button onClick={restart} style={{ background: C.ink, color: C.paper, fontSize: 13, padding: "10px 20px", borderRadius: 4 }}>🔄 다시 풀기</button>
           </div>
         );
@@ -304,7 +276,7 @@ app.get('/', (req, res) => {
       return (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <span style={{ fontSize: 11, padding: "3px 9px", borderRadius: 2, background: q.cat === "구약" ? (C.boxBg === "#FFFFFF" ? "#EFEADA" : "#3F3724") : (C.boxBg === "#FFFFFF" ? "#EAEFE3" : "#2E3A2E"), color: q.cat === "구약" ? C.goldDeep : C.sageDeep }}>{q.cat}</span>
+            <span style={{ fontSize: 11, padding: "3px 9px", borderRadius: 2, background: C.boxBg === "#FFFFFF" ? "#EFEADA" : "#3F3724", color: C.goldDeep }}>{q.cat}</span>
             <span style={{ fontSize: 12, color: C.inkSoft }}>{i + 1} / {total}</span>
           </div>
           <p style={{ fontFamily: SERIF, fontSize: 19, lineHeight: 1.6, marginBottom: 20, color: C.ink }}>{q.q}</p>
