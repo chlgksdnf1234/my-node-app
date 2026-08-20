@@ -215,7 +215,7 @@ app.get('/', (req, res) => {
               onClick={onOpenMap}
               style={{ background: C.boxBg, border: \`1px solid \${C.line}\`, color: C.goldDeep, fontSize: 11, padding: '4px 10px', borderRadius: 4, fontWeight: 'bold' }}
             >
-              🗺️ 한신대학교 대학교회 찾아가는 길
+              🗺️ 한신대학교 샬롬채플실 찾아가는 길
             </button>
             <button 
               onClick={onOpenAdmin}
@@ -456,14 +456,14 @@ app.get('/', (req, res) => {
             <div style={{ background: '#03C75A', color: '#FFFFFF', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTopLeftRadius: 11, borderTopRightRadius: 11 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ background: '#FFFFFF', color: '#03C75A', fontWeight: 'bold', fontSize: '11px', padding: '2px 6px', borderRadius: '4px' }}>N 지도</span>
-                <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>한신대학교 대학교회 위치안내</h2>
+                <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>한신대학교 샬롬채플실 위치안내</h2>
               </div>
               <button onClick={onClose} style={{ color: '#FFFFFF', fontSize: 18, fontWeight: 'bold', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
             </div>
 
             <div style={{ padding: '20px' }}>
               <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>📍</span> <span>경기도 오산시 한신대길 137, 한신대학교 캠퍼스 내 대학교회</span>
+                <span>📍</span> <span>경기도 오산시 한신대길 137, 한신대학교 캠퍼스 내 샬롬채플실</span>
               </div>
 
               {/* 깔끔한 미니맵 프레임 */}
@@ -487,7 +487,7 @@ app.get('/', (req, res) => {
                 </p>
                 <ul style={{ paddingLeft: '18px', margin: 0, color: C.inkSoft, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   <li>정문 진입 후 캠퍼스 중앙로를 따라 직진</li>
-                  <li>대학교회 이정표 및 교목실 안내 표지판 확인</li>
+                  <li>샬롬채플실 및 교목실 안내 표지판 확인</li>
                   <li>캠퍼스 내 지정 주차 공간 이용 가능</li>
                 </ul>
               </div>
@@ -627,7 +627,7 @@ app.get('/', (req, res) => {
       );
     }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
+    const root = ReactDOM.createRoot(getElementById('root'));
     root.render(<App />);
   </script>
 </body>
