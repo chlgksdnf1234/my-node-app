@@ -14,8 +14,8 @@ app.post('/api/gemini', async (req, res) => {
 
   const { prompt } = req.body;
 
-  // 수정됨: 지원 가능한 실제 Gemini 모델 버전 목록으로 변경
-  const models = ['gemini-1.5-flash', 'gemini-1.5-pro'];
+  // 가장 안정적이고 범용적인 모델명으로 수정 (1.5-flash 우선 시도 후 gemini-pro 시도)
+  const models = ['gemini-1.5-flash', 'gemini-pro'];
 
   let lastError = null;
 
