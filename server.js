@@ -72,7 +72,7 @@ app.get('/', (req, res) => {
       { ref: "애 3:22-23", verse: "여호와의 인자와 긍휼이 무궁하시므로 우리가 진멸되지 아니함이니이다 이것들이 아침마다 새로우니 주의 성실하심이 크시도소이다.", lead: "새로움", questions: ["어제 지은 죄나 실수 때문에 오늘도 마음이 무겁나요?", "아침마다 새롭게 부어주시는 자비와 긍휼을 찬양해보세요."] }
     ];
 
-    // ---- 요청하신 김목민 넌센스 퀴즈 데이터 ----
+    // ---- 넌센스 퀴즈 데이터 ----
     const QUIZ_DATA = [
       { cat: "넌센스", q: "김목민의 연애 횟수는??", opts: ["1회", "2회", "3회", "4회"], a: 3, ex: "꼴에 생각보다 많이 했습니다." },
       { cat: "넌센스", q: "김목민의 생일은??", opts: ["5월5일", "7월3일", "6월4일", "12월25일"], a: 2, ex: "김목민은 6월4일에 모 박경미 부 김명종사이에서 태어났습니다." },
@@ -144,7 +144,7 @@ app.get('/', (req, res) => {
           </button>
           <button onClick={() => setTab("quiz")} className="flex items-center gap-1.5 pb-3 transition-colors"
             style={{ borderBottom: tab === "quiz" ? \`2px solid \${C.ink}\` : "2px solid transparent", marginBottom: -1, color: tab === "quiz" ? C.ink : C.inkSoft, fontWeight: tab === "quiz" ? 700 : 500 }}>
-            🎯 김목민 퀴즈
+            🎯 퀴즈
           </button>
         </div>
       );
@@ -267,7 +267,7 @@ app.get('/', (req, res) => {
           <div className="text-center py-10" style={{ background: C.boxBg, borderRadius: 8, padding: 30, border: \`1px solid \${C.line}\` }}>
             <p style={{ color: C.goldDeep, fontSize: 12, letterSpacing: "0.1em" }}>QUIZ COMPLETE</p>
             <p style={{ fontFamily: SERIF, fontSize: 40, margin: "10px 0 6px", color: C.ink }}>{score} / {total}</p>
-            <p style={{ color: C.inkSoft, fontSize: 14, marginBottom: 24 }}>김목민 퀴즈를 모두 마쳤습니다! 수고하셨습니다.</p>
+            <p style={{ color: C.inkSoft, fontSize: 14, marginBottom: 24 }}>퀴즈를 모두 마쳤습니다! 수고하셨습니다.</p>
             <button onClick={restart} style={{ background: C.ink, color: C.paper, fontSize: 13, padding: "10px 20px", borderRadius: 4 }}>🔄 다시 풀기</button>
           </div>
         );
