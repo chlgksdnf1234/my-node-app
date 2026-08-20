@@ -14,8 +14,8 @@ app.post('/api/gemini', async (req, res) => {
 
   const { prompt } = req.body;
 
-  // 지원 가능한 최신 Gemini 모델 버전 목록
-  const models = ['gemini-2.5-flash', 'gemini-3.7-flash', 'gemini-2.5-pro'];
+  // 수정됨: 지원 가능한 실제 Gemini 모델 버전 목록으로 변경
+  const models = ['gemini-1.5-flash', 'gemini-1.5-pro'];
 
   let lastError = null;
 
