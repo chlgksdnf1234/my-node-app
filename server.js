@@ -3,7 +3,7 @@ const app = express();
 
 app.use(express.json());
 
-// 서버 메모리에 모든 사용자의 제출 내역 저장 (서버 재시작 시 초기화됨)
+// 사용자 이름별로 묵상 및 퀴즈 로그 누적
 let sharedQtRecords = [];
 let sharedQuizRecords = [];
 
@@ -12,22 +12,16 @@ app.get('/api/data', (req, res) => {
 });
 
 app.post('/api/qt', (req, res) => {
-  const { date, text, timestamp } = req.body;
+  const { name, date, text, timestamp } = req.body;
   if (!text) return res.status(400).send('Empty');
   
-  // 같은 날짜의 기존 기록이 있다면 덮어쓰기, 없으면 추가
-  const existingIndex = sharedQtRecords.findIndex(item => item.date === date);
-  if (existingIndex >= 0) {
-    sharedQtRecords[existingIndex] = { date, text, timestamp };
-  } else {
-    sharedQtRecords.push({ date, text, timestamp });
-  }
+  sharedQtRecords.push({ name: name || "등록안함", date, text, timestamp: timestamp || Date.now() });
   res.send({ success: true });
 });
 
 app.post('/api/quiz', (req, res) => {
-  const { date, score, total } = req.body;
-  sharedQuizRecords.push({ date, score, total, timestamp: Date.now() });
+  const { name, date, score, total } = req.body;
+  sharedQuizRecords.push({ name: name || "등록안함", date, score, total, timestamp: Date.now() });
   res.send({ success: true });
 });
 
@@ -115,6 +109,8 @@ app.get('/', (req, res) => {
     }
 
     function App() {
+      const [userName, setUserName] = useState(null);
+      const [tempName, setTempName] = useState("");
       const [tab, setTab] = useState("qt");
       const [isDark, setIsDark] = useState(false);
       const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -122,7 +118,22 @@ app.get('/', (req, res) => {
       useEffect(() => {
         const savedTheme = localStorage.getItem('hanshin-qt-theme');
         if (savedTheme === 'dark') setIsDark(true);
+        
+        const savedUser = localStorage.getItem('hanshin-qt-username');
+        if (savedUser) setUserName(savedUser);
       }, []);
+
+      const handleLoginSubmit = (e) => {
+        e.preventDefault();
+        const nameToUse = tempName.trim() || "등록안함";
+        setUserName(nameToUse);
+        localStorage.setItem('hanshin-qt-username', nameToUse);
+      };
+
+      const handleSkipLogin = () => {
+        setUserName("등록안함");
+        localStorage.setItem('hanshin-qt-username', "등록안함");
+      };
 
       const toggleTheme = () => {
         const newTheme = !isDark;
@@ -132,12 +143,38 @@ app.get('/', (req, res) => {
 
       const C = isDark ? darkTheme : lightTheme;
 
+      // 이름 입력 전 첫 화면
+      if (!userName) {
+        return (
+          <div style={{ background: C.paper, minHeight: "100vh", fontFamily: SANS, color: C.ink }} className="flex items-center justify-center p-5">
+            <div style={{ background: C.boxBg, border: \`1px solid \${C.line}\`, borderRadius: 8, padding: 30, width: '100%', maxWidth: '400px' }} className="shadow-lg">
+              <div className="text-center mb-6">
+                <span className="text-3xl">✝️</span>
+                <h1 style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 700, marginTop: 8 }}>한신대 교목실 Q.T</h1>
+                <p style={{ fontSize: 13, color: C.inkSoft, marginTop: 4 }}>이름을 입력하고 시작해 주세요.</p>
+              </div>
+              <form onSubmit={handleLoginSubmit} className="flex flex-col gap-3">
+                <input 
+                  type="text" 
+                  placeholder="본인의 이름을 입력하세요" 
+                  value={tempName} 
+                  onChange={(e) => setTempName(e.target.value)}
+                  style={{ background: C.paper, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: "12px 14px", fontSize: 14, outline: 'none' }}
+                />
+                <button type="submit" style={{ background: C.ink, color: C.paper, padding: "12px", borderRadius: 4, fontWeight: 'bold' }}>입장하기</button>
+                <button type="button" onClick={handleSkipLogin} style={{ background: C.paper, color: C.inkSoft, border: \`1px solid \${C.line}\`, padding: "10px", borderRadius: 4, fontSize: 13 }}>등록 안함 (익명으로 시작)</button>
+              </form>
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div style={{ background: C.paper, minHeight: "100vh", fontFamily: SANS, color: C.ink }} className="w-full relative pb-10">
           <div className="max-w-xl mx-auto px-5 pt-8 pb-16">
-            <Header C={C} onOpenAdmin={() => setIsAdminOpen(true)} />
+            <Header C={C} userName={userName} onOpenAdmin={() => setIsAdminOpen(true)} onChangeUser={() => setUserName(null)} />
             <TabBar tab={tab} setTab={setTab} C={C} />
-            {tab === "qt" ? <QTView C={C} /> : <QuizView C={C} />}
+            {tab === "qt" ? <QTView C={C} userName={userName} /> : <QuizView C={C} userName={userName} />}
           </div>
 
           <button 
@@ -154,20 +191,26 @@ app.get('/', (req, res) => {
       );
     }
 
-    function Header({ C, onOpenAdmin }) {
+    function Header({ C, userName, onOpenAdmin, onChangeUser }) {
       return (
         <div className="mb-7 relative">
-          <button 
-            onClick={onOpenAdmin}
-            style={{ position: 'absolute', top: 0, right: 0, background: C.boxBg, border: \`1px solid \${C.line}\`, color: C.ink, fontSize: 11, padding: '4px 10px', borderRadius: 4 }}
-          >
-            🔒 관리자
-          </button>
+          <div style={{ position: 'absolute', top: 0, right: 0, display: 'flex', gap: '6px' }}>
+            <button 
+              onClick={onOpenAdmin}
+              style={{ background: C.boxBg, border: \`1px solid \${C.line}\`, color: C.ink, fontSize: 11, padding: '4px 10px', borderRadius: 4 }}
+            >
+              🔒 관리자
+            </button>
+          </div>
           <div className="flex items-center gap-2 mb-1">
             <span>✝️</span>
             <span style={{ color: C.goldDeep, fontFamily: SANS, fontSize: 12, letterSpacing: "0.12em" }}>HANSHIN UNIVERSITY</span>
           </div>
-          <h1 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 700, color: C.ink, letterSpacing: "-0.01em" }}>한신대 교목실 Q.T</h1>
+          <div className="flex items-baseline gap-2">
+            <h1 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 700, color: C.ink, letterSpacing: "-0.01em" }}>한신대 교목실 Q.T</h1>
+            <span style={{ fontSize: 13, color: C.goldDeep }}>({userName}님)</span>
+            <button onClick={onChangeUser} style={{ fontSize: 11, color: C.inkSoft, textDecoration: 'underline' }}>이름변경</button>
+          </div>
           <p style={{ color: C.inkSoft, fontSize: 13, marginTop: 4 }}>말씀과 기도로 거룩한 하루를 여는 시간</p>
         </div>
       );
@@ -188,41 +231,23 @@ app.get('/', (req, res) => {
       );
     }
 
-    function QTView({ C }) {
+    function QTView({ C, userName }) {
       const dayOfMonth = new Date().getDate();
       const idx = (dayOfMonth - 1) % QT_DATA.length;
       const entry = QT_DATA[idx];
       
       const [journal, setJournal] = useState("");
       const [savedAt, setSavedAt] = useState(null);
-      const [streak, setStreak] = useState([]);
-      const key = \`hanshin-qt:\${todayStr()}\`;
-
-      useEffect(() => {
-        const savedData = localStorage.getItem(key);
-        if (savedData) {
-          try {
-            const parsed = JSON.parse(savedData);
-            setJournal(parsed.text || "");
-            setSavedAt(parsed.timestamp || null);
-          } catch(e) {}
-        }
-      }, [key]);
 
       function handleSave() {
         if (!journal.trim()) return;
         const now = Date.now();
-        const dataObj = { text: journal, timestamp: now };
-        
-        // 내 브라우저에 저장
-        localStorage.setItem(key, JSON.stringify(dataObj));
         setSavedAt(now);
 
-        // 서버로 전송하여 모든 사용자가 볼 수 있게 공유
         fetch('/api/qt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date: todayStr(), text: journal, timestamp: now })
+          body: JSON.stringify({ name: userName, date: todayStr(), text: journal, timestamp: now })
         }).catch(err => console.error(err));
       }
 
@@ -254,15 +279,15 @@ app.get('/', (req, res) => {
             <textarea value={journal} onChange={(e) => setJournal(e.target.value)} placeholder="오늘 말씀을 읽으며 든 생각과 기도를 적어보세요." rows="5"
               style={{ width: "100%", background: C.boxBg, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: 14, fontSize: 14, outline: "none" }} />
             <div className="flex items-center justify-between mt-3">
-              <span style={{ fontSize: 12, color: C.inkSoft }}>{savedAt ? \`저장완료 \${new Date(savedAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}\` : "아직 기록이 없습니다."}</span>
-              <button onClick={handleSave} style={{ background: C.ink, color: C.paper, fontSize: 13, padding: "8px 16px", borderRadius: 4 }}>✅ 저장</button>
+              <span style={{ fontSize: 12, color: C.inkSoft }}>{savedAt ? \`전송완료 \${new Date(savedAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}\` : "기록을 작성하고 저장해보세요."}</span>
+              <button onClick={handleSave} style={{ background: C.ink, color: C.paper, fontSize: 13, padding: "8px 16px", borderRadius: 4 }}>✅ 저장 및 제출</button>
             </div>
           </div>
         </div>
       );
     }
 
-    function QuizView({ C }) {
+    function QuizView({ C, userName }) {
       const [i, setI] = useState(0);
       const [selected, setSelected] = useState(null);
       const [textInput, setTextInput] = useState("");
@@ -293,11 +318,10 @@ app.get('/', (req, res) => {
           setFinished(true);
           const finalScore = score + (isTextCorrect ? 1 : 0);
           
-          // 서버로 퀴즈 완료 결과 전송
           fetch('/api/quiz', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ date: todayStr(), score: finalScore, total })
+            body: JSON.stringify({ name: userName, date: todayStr(), score: finalScore, total })
           }).catch(err => console.error(err));
           
           return;
@@ -317,7 +341,7 @@ app.get('/', (req, res) => {
           <div className="text-center py-10" style={{ background: C.boxBg, borderRadius: 8, padding: 30, border: \`1px solid \${C.line}\` }}>
             <p style={{ color: C.goldDeep, fontSize: 12, letterSpacing: "0.1em" }}>QUIZ COMPLETE</p>
             <p style={{ fontFamily: SERIF, fontSize: 40, margin: "10px 0 6px", color: C.ink }}>{score} / {total}</p>
-            <p style={{ color: C.inkSoft, fontSize: 14, marginBottom: 24 }}>퀴즈를 모두 마쳤습니다! 수고하셨습니다.</p>
+            <p style={{ color: C.inkSoft, fontSize: 14, marginBottom: 24 }}>퀴즈를 모두 마치고 기록이 제출되었습니다!</p>
             <button onClick={restart} style={{ background: C.ink, color: C.paper, fontSize: 13, padding: "10px 20px", borderRadius: 4 }}>🔄 다시 풀기</button>
           </div>
         );
@@ -401,6 +425,7 @@ app.get('/', (req, res) => {
       const [isLoggedIn, setIsLoggedIn] = useState(false);
       const [qtRecords, setQtRecords] = useState([]);
       const [quizRecords, setQuizRecords] = useState([]);
+      const [selectedName, setSelectedName] = useState("전체보기");
 
       function handleLogin(e) {
         e.preventDefault();
@@ -416,23 +441,29 @@ app.get('/', (req, res) => {
         fetch('/api/data')
           .then(res => res.json())
           .then(data => {
-            setQtRecords(data.qt.sort((a,b) => b.timestamp - a.timestamp));
-            setQuizRecords(data.quiz.sort((a,b) => b.timestamp - a.timestamp));
+            setQtRecords([...data.qt].sort((a,b) => b.timestamp - a.timestamp));
+            setQuizRecords([...data.quiz].sort((a,b) => b.timestamp - a.timestamp));
           })
           .catch(err => console.error(err));
       }
 
+      // 등록된 모든 이름 목록 추출 (중복 제거)
+      const allNames = ["전체보기", ...Array.from(new Set([...qtRecords.map(r => r.name), ...quizRecords.map(r => r.name)]))];
+
+      const filteredQt = selectedName === "전체보기" ? qtRecords : qtRecords.filter(r => r.name === selectedName);
+      const filteredQuiz = selectedName === "전체보기" ? quizRecords : quizRecords.filter(r => r.name === selectedName);
+
       return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-          <div style={{ background: C.boxBg, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 8, width: '100%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto', padding: 24 }}>
+          <div style={{ background: C.boxBg, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 8, width: '100%', maxWidth: '550px', maxHeight: '85vh', overflowY: 'auto', padding: 24 }}>
             <div className="flex justify-between items-center mb-4">
-              <h2 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700 }}>관리자 모드 (전체 사용자 조회)</h2>
+              <h2 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700 }}>관리자 모드 (이름별 조회)</h2>
               <button onClick={onClose} style={{ fontSize: 18, fontWeight: 'bold' }}>✕</button>
             </div>
 
             {!isLoggedIn ? (
               <form onSubmit={handleLogin} className="flex flex-col gap-3">
-                <p style={{ fontSize: 13, color: C.inkSoft }}>관리자 계정으로 로그인하여 모든 사용자의 제출 내역을 확인하세요.</p>
+                <p style={{ fontSize: 13, color: C.inkSoft }}>관리자 계정으로 로그인하여 이름을 선택해 확인하세요.</p>
                 <input type="text" placeholder="아이디" value={id} onChange={(e) => setId(e.target.value)} 
                   style={{ background: C.paper, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: 10, fontSize: 14, outline: 'none' }} />
                 <input type="password" placeholder="비밀번호" value={pw} onChange={(e) => setPw(e.target.value)} 
@@ -441,34 +472,52 @@ app.get('/', (req, res) => {
               </form>
             ) : (
               <div>
-                <div className="flex justify-between items-center mb-2">
-                  <h3 style={{ fontSize: 16, fontWeight: 700 }}>📝 전체 묵상 기록</h3>
-                  <button onClick={fetchData} style={{ fontSize: 11, padding: '2px 8px', background: C.paper, border: \`1px solid \${C.line}\`, borderRadius: 4 }}>🔄새로고침</button>
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-2">
+                    <span style={{ fontSize: 13, fontWeight: 'bold' }}>👤 이름 선택:</span>
+                    <select 
+                      value={selectedName} 
+                      onChange={(e) => setSelectedName(e.target.value)}
+                      style={{ background: C.paper, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: "6px 10px", fontSize: 13, outline: 'none' }}
+                    >
+                      {allNames.map((name, idx) => (
+                        <option key={idx} value={name}>{name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button onClick={fetchData} style={{ fontSize: 11, padding: '4px 9px', background: C.paper, border: \`1px solid \${C.line}\`, borderRadius: 4 }}>🔄새로고침</button>
                 </div>
-                {qtRecords.length === 0 ? (
-                  <p style={{ fontSize: 13, color: C.inkSoft, marginBottom: 15 }}>저장된 묵상 기록이 없습니다.</p>
+
+                <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>📝 묵상 기록 ({filteredQt.length}개)</h3>
+                {filteredQt.length === 0 ? (
+                  <p style={{ fontSize: 13, color: C.inkSoft, marginBottom: 15 }}>해당하는 묵상 기록이 없습니다.</p>
                 ) : (
                   <div className="flex flex-col gap-2 mb-6 max-h-48 overflow-y-auto">
-                    {qtRecords.map((r, idx) => (
+                    {filteredQt.map((r, idx) => (
                       <div key={idx} style={{ background: C.paper, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: 10, fontSize: 13 }}>
-                        <div style={{ fontWeight: 'bold', marginBottom: 2, color: C.goldDeep }}>날짜: {r.date}</div>
+                        <div className="flex justify-between font-bold mb-1" style={{ color: C.goldDeep }}>
+                          <span>이름: {r.name}</span>
+                          <span>날짜: {r.date}</span>
+                        </div>
                         <div>{r.text}</div>
-                        <div style={{ fontSize: 10, color: C.inkSoft, marginTop: 4 }}>저장시간: {new Date(r.timestamp).toLocaleString()}</div>
+                        <div style={{ fontSize: 10, color: C.inkSoft, marginTop: 4 }}>제출시각: {new Date(r.timestamp).toLocaleString()}</div>
                       </div>
                     ))}
                   </div>
                 )}
 
-                <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>🎯 전체 퀴즈 완료 내역</h3>
-                {quizRecords.length === 0 ? (
-                  <p style={{ fontSize: 13, color: C.inkSoft }}>완료된 퀴즈 내역이 없습니다.</p>
+                <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>🎯 퀴즈 완료 내역 ({filteredQuiz.length}개)</h3>
+                {filteredQuiz.length === 0 ? (
+                  <p style={{ fontSize: 13, color: C.inkSoft }}>해당하는 퀴즈 내역이 없습니다.</p>
                 ) : (
                   <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
-                    {quizRecords.map((r, idx) => (
+                    {filteredQuiz.map((r, idx) => (
                       <div key={idx} style={{ background: C.paper, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: 10, fontSize: 13 }}>
-                        <div>응시 날짜: {r.date}</div>
-                        <div style={{ fontWeight: 'bold', color: C.sageDeep }}>점수: {r.score} / {r.total} 점</div>
-                        <div style={{ fontSize: 10, color: C.inkSoft, marginTop: 2 }}>완료시간: {new Date(r.timestamp).toLocaleString()}</div>
+                        <div className="flex justify-between font-bold mb-1" style={{ color: C.sageDeep }}>
+                          <span>이름: {r.name}</span>
+                          <span>점수: {r.score} / {r.total} 점</span>
+                        </div>
+                        <div style={{ fontSize: 11, color: C.inkSoft }}>응시 날짜: {r.date} / 완료시각: {new Date(r.timestamp).toLocaleString()}</div>
                       </div>
                     ))}
                   </div>
