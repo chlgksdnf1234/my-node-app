@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useMemo } = React;
+    const { useState, useEffect } = React;
 
     const lightTheme = {
       paper: "#FAF6ED", paperDeep: "#F2ECDC", ink: "#23304A", inkSoft: "#5B6577",
@@ -37,7 +37,7 @@ app.get('/', (req, res) => {
     const SERIF = "'Nanum Myeongjo', serif";
     const SANS = "'Noto Sans KR', sans-serif";
 
-    // ---- 큐티 31일치 (매달 순환) ----
+    // ---- 큐티 31일치 ----
     const QT_DATA = [
       { ref: "시편 23:1", verse: "여호와는 나의 목자시니 내게 부족함이 없으리로다.", lead: "돌보심", questions: ["오늘 내게 가장 필요한 채움은 무엇인가요?", "목자 되신 주님께 나의 부족함을 기도로 맡겨보세요."] },
       { ref: "마 6:34", verse: "그러므로 내일 일을 위하여 염려하지 말라 내일 일은 내일이 염려할 것이요...", lead: "오늘", questions: ["내가 미리 당겨서 하는 걱정은 무엇인가요?", "오늘 하루에만 집중하기 위해 내려놓을 생각은 무엇인가요?"] },
@@ -72,12 +72,13 @@ app.get('/', (req, res) => {
       { ref: "애 3:22-23", verse: "여호와의 인자와 긍휼이 무궁하시므로 우리가 진멸되지 아니함이니이다 이것들이 아침마다 새로우니 주의 성실하심이 크시도소이다.", lead: "새로움", questions: ["어제 지은 죄나 실수 때문에 오늘도 마음이 무겁나요?", "아침마다 새롭게 부어주시는 자비와 긍휼을 찬양해보세요."] }
     ];
 
-    // ---- 넌센스 퀴즈 데이터 ----
+    // ---- 퀴즈 데이터 (주관식 문제 포함) ----
     const QUIZ_DATA = [
-      { cat: "넌센스", q: "김목민의 연애 횟수는??", opts: ["1회", "2회", "3회", "4회"], a: 3, ex: "꼴에 생각보다 많이 했습니다." },
-      { cat: "넌센스", q: "김목민의 생일은??", opts: ["5월5일", "7월3일", "6월4일", "12월25일"], a: 2, ex: "김목민은 6월4일에 모 박경미 부 김명종사이에서 태어났습니다." },
-      { cat: "넌센스", q: "김목민의 키는??", opts: ["163cm", "171cm", "168cm", "183cm"], a: 2, ex: "김목민의 키는 신검 기준 170cm이지만 이후 스트레스로 인해 2cm가 줄어 168cm입니다." },
-      { cat: "넌센스", q: "김목민의 고향은??", opts: ["해남", "완도", "전복", "광주"], a: 1, ex: "김목민은 전복의 도시 완도에서 2001년 06년 04일에 출생하고 2016년도까지 거주했습니다." }
+      { cat: "넌센스", q: "김목민의 연애 횟수는??", type: "choice", opts: ["1회", "2회", "3회", "4회"], a: 3, ex: "꼴에 생각보다 많이 했습니다." },
+      { cat: "넌센스", q: "김목민의 생일은??", type: "choice", opts: ["5월5일", "7월3일", "6월4일", "12월25일"], a: 2, ex: "김목민은 6월4일에 모 박경미 부 김명종사이에서 태어났습니다." },
+      { cat: "넌센스", q: "김목민의 키는??", type: "choice", opts: ["163cm", "171cm", "168cm", "183cm"], a: 2, ex: "김목민의 키는 신검 기준 170cm이지만 이후 스트레스로 인해 2cm가 줄어 168cm입니다." },
+      { cat: "넌센스", q: "김목민의 고향은??", type: "choice", opts: ["해남", "완도", "전복", "광주"], a: 1, ex: "김목민은 전복의 도시 완도에서 2001년 06년 04일에 출생하고 2016년도까지 거주했습니다." },
+      { cat: "넌센스", q: "김목민의 다리는??", type: "text", answer: "백만불짜리다리", ex: "김목민의 다리는 아주 소중한 백만불짜리 다리입니다." }
     ];
 
     function todayStr() {
@@ -88,6 +89,7 @@ app.get('/', (req, res) => {
     function App() {
       const [tab, setTab] = useState("qt");
       const [isDark, setIsDark] = useState(false);
+      const [isAdminOpen, setIsAdminOpen] = useState(false);
 
       useEffect(() => {
         const savedTheme = localStorage.getItem('hanshin-qt-theme');
@@ -105,26 +107,34 @@ app.get('/', (req, res) => {
       return (
         <div style={{ background: C.paper, minHeight: "100vh", fontFamily: SANS, color: C.ink }} className="w-full relative pb-10">
           <div className="max-w-xl mx-auto px-5 pt-8 pb-16">
-            <Header C={C} />
+            <Header C={C} onOpenAdmin={() => setIsAdminOpen(true)} />
             <TabBar tab={tab} setTab={setTab} C={C} />
             {tab === "qt" ? <QTView C={C} /> : <QuizView C={C} />}
           </div>
 
           <button 
             onClick={toggleTheme}
-            className="fixed bottom-6 right-6 p-3 rounded-full shadow-lg transition-transform hover:scale-110 flex items-center justify-center text-xl"
+            className="fixed bottom-6 right-6 p-3 rounded-full shadow-lg transition-transform hover:scale-110 flex items-center justify-center text-xl z-20"
             style={{ background: C.boxBg, border: \`1px solid \${C.line}\`, color: C.ink, width: '50px', height: '50px' }}
             title="다크/라이트 모드 전환"
           >
             {isDark ? "☀️" : "🌙"}
           </button>
+
+          {isAdminOpen && <AdminModal C={C} onClose={() => setIsAdminOpen(false)} />}
         </div>
       );
     }
 
-    function Header({ C }) {
+    function Header({ C, onOpenAdmin }) {
       return (
-        <div className="mb-7">
+        <div className="mb-7 relative">
+          <button 
+            onClick={onOpenAdmin}
+            style={{ position: 'absolute', top: 0, right: 0, background: C.boxBg, border: \`1px solid \${C.line}\`, color: C.ink, fontSize: 11, padding: '4px 10px', borderRadius: 4 }}
+          >
+            🔒 관리자
+          </button>
           <div className="flex items-center gap-2 mb-1">
             <span>✝️</span>
             <span style={{ color: C.goldDeep, fontFamily: SANS, fontSize: 12, letterSpacing: "0.12em" }}>HANSHIN UNIVERSITY</span>
@@ -153,7 +163,7 @@ app.get('/', (req, res) => {
     function QTView({ C }) {
       const dayOfMonth = new Date().getDate();
       const idx = (dayOfMonth - 1) % QT_DATA.length;
-      const entry = QT_DATA[idx];
+      const entry = QT_DATA.length > 0 ? QT_DATA[idx] : null;
       
       const [journal, setJournal] = useState("");
       const [savedAt, setSavedAt] = useState(null);
@@ -163,9 +173,11 @@ app.get('/', (req, res) => {
       useEffect(() => {
         const savedData = localStorage.getItem(key);
         if (savedData) {
-          const parsed = JSON.parse(savedData);
-          setJournal(parsed.text || "");
-          setSavedAt(parsed.timestamp || null);
+          try {
+            const parsed = JSON.parse(savedData);
+            setJournal(parsed.text || "");
+            setSavedAt(parsed.timestamp || null);
+          } catch(e) {}
         } else {
           setJournal("");
           setSavedAt(null);
@@ -184,10 +196,13 @@ app.get('/', (req, res) => {
       function handleSave() {
         if (!journal.trim()) return;
         const now = Date.now();
-        localStorage.setItem(key, JSON.stringify({ text: journal, timestamp: now }));
+        const dataObj = { text: journal, timestamp: now };
+        localStorage.setItem(key, JSON.stringify(dataObj));
         setSavedAt(now);
         setStreak((prev) => prev.map((d) => (d.date === todayStr() ? { ...d, done: true } : d)));
       }
+
+      if (!entry) return null;
 
       return (
         <div>
@@ -242,6 +257,8 @@ app.get('/', (req, res) => {
     function QuizView({ C }) {
       const [i, setI] = useState(0);
       const [selected, setSelected] = useState(null);
+      const [textInput, setTextInput] = useState("");
+      const [isTextCorrect, setIsTextCorrect] = useState(null);
       const [score, setScore] = useState(0);
       const [finished, setFinished] = useState(false);
       
@@ -253,13 +270,34 @@ app.get('/', (req, res) => {
         setSelected(optIdx);
         if (optIdx === q.a) setScore((s) => s + 1);
       }
+
+      function submitText() {
+        if (isTextCorrect !== null || !textInput.trim()) return;
+        const cleanInput = textInput.trim().replace(/\\s+/g, '');
+        const cleanAnswer = q.answer.replace(/\\s+/g, '');
+        const correct = cleanInput === cleanAnswer;
+        setIsTextCorrect(correct);
+        if (correct) setScore((s) => s + 1);
+      }
+
       function next() {
-        if (i + 1 >= total) return setFinished(true);
+        if (i + 1 >= total) {
+          setFinished(true);
+          // 퀴즈 결과 로컬스토리지 저장
+          try {
+            const quizRecordKey = \`hanshin-quiz-record:\${Date.now()}\`;
+            localStorage.setItem(quizRecordKey, JSON.stringify({ date: todayStr(), score: score + (isTextCorrect ? 1 : 0), total }));
+          } catch(e) {}
+          return;
+        }
         setI((v) => v + 1);
         setSelected(null);
+        setTextInput("");
+        setIsTextCorrect(null);
       }
+
       function restart() {
-        setI(0); setSelected(null); setScore(0); setFinished(false);
+        setI(0); setSelected(null); setTextInput(""); setIsTextCorrect(null); setScore(0); setFinished(false);
       }
 
       if (finished) {
@@ -280,42 +318,159 @@ app.get('/', (req, res) => {
             <span style={{ fontSize: 12, color: C.inkSoft }}>{i + 1} / {total}</span>
           </div>
           <p style={{ fontFamily: SERIF, fontSize: 19, lineHeight: 1.6, marginBottom: 20, color: C.ink }}>{q.q}</p>
-          <div className="flex flex-col gap-2.5 mb-5">
-            {q.opts.map((opt, idx) => {
-              const isCorrect = idx === q.a;
-              const isPicked = idx === selected;
-              let bg = C.boxBg, border = C.line, textColor = C.ink;
-              
-              if (selected !== null) {
-                if (isCorrect) { 
-                  bg = C.boxBg === "#FFFFFF" ? "#EAEFE3" : "#1B2A1F"; 
-                  border = C.sage; textColor = C.sageDeep; 
+
+          {q.type === 'choice' ? (
+            <div className="flex flex-col gap-2.5 mb-5">
+              {q.opts.map((opt, idx) => {
+                const isCorrect = idx === q.a;
+                const isPicked = idx === selected;
+                let bg = C.boxBg, border = C.line, textColor = C.ink;
+                
+                if (selected !== null) {
+                  if (isCorrect) { 
+                    bg = C.boxBg === "#FFFFFF" ? "#EAEFE3" : "#1B2A1F"; 
+                    border = C.sage; textColor = C.sageDeep; 
+                  }
+                  else if (isPicked) { 
+                    bg = C.boxBg === "#FFFFFF" ? "#F5E7E4" : "#3D1F1A"; 
+                    border = C.clay; textColor = C.clayDeep; 
+                  }
                 }
-                else if (isPicked) { 
-                  bg = C.boxBg === "#FFFFFF" ? "#F5E7E4" : "#3D1F1A"; 
-                  border = C.clay; textColor = C.clayDeep; 
-                }
-              }
-              return (
-                <button key={idx} onClick={() => choose(idx)} disabled={selected !== null} className="flex items-center justify-between text-left"
-                  style={{ background: bg, border: \`1px solid \${border}\`, borderRadius: 4, padding: "12px 14px", fontSize: 14, color: textColor }}>
-                  <span>{opt}</span>
-                  {selected !== null && isCorrect && <span>✅</span>}
-                  {selected !== null && isPicked && !isCorrect && <span>❌</span>}
-                </button>
-              );
-            })}
-          </div>
-          {selected !== null && (
-            <div style={{ background: C.boxBg, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: "12px 14px", marginBottom: 18 }}>
-              <p style={{ fontSize: 13, color: C.inkSoft, lineHeight: 1.6 }}>{q.ex}</p>
+                return (
+                  <button key={idx} onClick={() => choose(idx)} disabled={selected !== null} className="flex items-center justify-between text-left"
+                    style={{ background: bg, border: \`1px solid \${border}\`, borderRadius: 4, padding: "12px 14px", fontSize: 14, color: textColor }}>
+                    <span>{opt}</span>
+                    {selected !== null && isCorrect && <span>✅</span>}
+                    {selected !== null && isPicked && !isCorrect && <span>❌</span>}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="mb-5">
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  value={textInput} 
+                  onChange={(e) => setTextInput(e.target.value)} 
+                  disabled={isTextCorrect !== null}
+                  placeholder="정답을 입력하세요"
+                  style={{ flex: 1, background: C.boxBg, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: "12px 14px", fontSize: 14, outline: "none" }}
+                />
+                {isTextCorrect === null && (
+                  <button onClick={submitText} style={{ background: C.ink, color: C.paper, fontSize: 13, padding: "0 16px", borderRadius: 4 }}>제출</button>
+                )}
+              </div>
+              {isTextCorrect !== null && (
+                <div className="mt-3 p-3 rounded" style={{ background: isTextCorrect ? (C.boxBg === "#FFFFFF" ? "#EAEFE3" : "#1B2A1F") : (C.boxBg === "#FFFFFF" ? "#F5E7E4" : "#3D1F1A"), color: isTextCorrect ? C.sageDeep : C.clayDeep }}>
+                  {isTextCorrect ? "정답입니다! 🎉" : \`틀렸습니다. (정답: \${q.answer})\`}
+                </div>
+              )}
             </div>
           )}
-          {selected !== null && (
-            <button onClick={next} className="ml-auto flex items-center gap-1.5" style={{ background: C.ink, color: C.paper, fontSize: 13, padding: "9px 16px", borderRadius: 4 }}>
-              {i + 1 >= total ? "결과 보기" : "다음 문제"} ▶️
-            </button>
+
+          {((q.type === 'choice' && selected !== null) || (q.type === 'text' && isTextCorrect !== null)) && (
+            <div>
+              <div style={{ background: C.boxBg, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: "12px 14px", marginBottom: 18 }}>
+                <p style={{ fontSize: 13, color: C.inkSoft, lineHeight: 1.6 }}>{q.ex}</p>
+              </div>
+              <button onClick={next} className="ml-auto flex items-center gap-1.5" style={{ background: C.ink, color: C.paper, fontSize: 13, padding: "9px 16px", borderRadius: 4 }}>
+                {i + 1 >= total ? "결과 보기" : "다음 문제"} ▶️
+              </button>
+            </div>
           )}
+        </div>
+      );
+    }
+
+    function AdminModal({ C, onClose }) {
+      const [id, setId] = useState("");
+      const [pw, setPw] = useState("");
+      const [isLoggedIn, setIsLoggedIn] = useState(false);
+      const [qtRecords, setQtRecords] = useState([]);
+      const [quizRecords, setQuizRecords] = useState([]);
+
+      function handleLogin(e) {
+        e.preventDefault();
+        if (id === "admin12" && pw === "admin12") {
+          setIsLoggedIn(true);
+          loadLogs();
+        } else {
+          alert("아이디 또는 비밀번호가 올바르지 않습니다. (admin12 / admin12)");
+        }
+      }
+
+      function loadLogs() {
+        const qts = [];
+        const quzs = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k.startsWith("hanshin-qt:")) {
+            try {
+              const val = JSON.parse(localStorage.getItem(k));
+              qts.push({ date: k.replace("hanshin-qt:", ""), ...val });
+            } catch(e) {}
+          } else if (k.startsWith("hanshin-quiz-record:")) {
+            try {
+              const val = JSON.parse(localStorage.getItem(k));
+              quzs.push({ id: k, ...val });
+            } catch(e) {}
+          }
+        }
+        setQtRecords(qts.sort((a,b) => b.date.localeCompare(a.date)));
+        setQuizRecords(quzs);
+      }
+
+      return (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+          <div style={{ background: C.boxBg, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 8, width: '100%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto', padding: 24 }}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700 }}>관리자 모드</h2>
+              <button onClick={onClose} style={{ fontSize: 18, fontWeight: 'bold' }}>✕</button>
+            </div>
+
+            {!isLoggedIn ? (
+              <form onSubmit={handleLogin} className="flex flex-col gap-3">
+                <p style={{ fontSize: 13, color: C.inkSoft }}>관리자 계정으로 로그인하여 제출된 내역을 확인하세요.</p>
+                <input type="text" placeholder="아이디 (admin12)" value={id} onChange={(e) => setId(e.target.value)} 
+                  style={{ background: C.paper, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: 10, fontSize: 14, outline: 'none' }} />
+                <input type="password" placeholder="비밀번호 (admin12)" value={pw} onChange={(e) => setPw(e.target.value)} 
+                  style={{ background: C.paper, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: 10, fontSize: 14, outline: 'none' }} />
+                <button type="submit" style={{ background: C.ink, color: C.paper, padding: '10px', borderRadius: 4, fontWeight: 'bold', marginTop: 5 }}>로그인</button>
+              </form>
+            ) : (
+              <div>
+                <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, marginTop: 10 }}>📝 오늘의 묵상 기록 목록</h3>
+                {qtRecords.length === 0 ? (
+                  <p style={{ fontSize: 13, color: C.inkSoft, marginBottom: 15 }}>저장된 묵상 기록이 없습니다.</p>
+                ) : (
+                  <div className="flex flex-col gap-2 mb-6 max-h-48 overflow-y-auto">
+                    {qtRecords.map((r, idx) => (
+                      <div key={idx} style={{ background: C.paper, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: 10, fontSize: 13 }}>
+                        <div style={{ fontWeight: 'bold', marginBottom: 2, color: C.goldDeep }}>날짜: {r.date}</div>
+                        <div>{r.text}</div>
+                        <div style={{ fontSize: 10, color: C.inkSoft, marginTop: 4 }}>저장시간: {new Date(r.timestamp).toLocaleString()}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>🎯 퀴즈 완료 내역</h3>
+                {quizRecords.length === 0 ? (
+                  <p style={{ fontSize: 13, color: C.inkSoft }}>완료된 퀴즈 내역이 없습니다.</p>
+                ) : (
+                  <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
+                    {quizRecords.map((r, idx) => (
+                      <div key={idx} style={{ background: C.paper, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: 10, fontSize: 13 }}>
+                        <div>응시 날짜: {r.date}</div>
+                        <div style={{ fontWeight: 'bold', color: C.sageDeep }}>점수: {r.score} / {r.total} 점</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       );
     }
