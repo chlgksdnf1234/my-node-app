@@ -72,7 +72,7 @@ app.get('/', (req, res) => {
       { ref: "애 3:22-23", verse: "여호와의 인자와 긍휼이 무궁하시므로 우리가 진멸되지 아니함이니이다 이것들이 아침마다 새로우니 주의 성실하심이 크시도소이다.", lead: "새로움", questions: ["어제 지은 죄나 실수 때문에 오늘도 마음이 무겁나요?", "아침마다 새롭게 부어주시는 자비와 긍휼을 찬양해보세요."] }
     ];
 
-    // ---- 퀴즈 데이터 70제 (매일 랜덤 5개 출제용 풀) ----
+    // ---- 퀴즈 데이터 70제 ----
     const QUIZ_DATA = [
       { cat: "구약", q: "노아의 방주에 함께 탄 가족은 모두 몇 명이었나요?", opts: ["4명", "6명", "8명", "10명"], a: 2, ex: "노아 부부와 세 아들 부부, 총 8명이 탔습니다." },
       { cat: "구약", q: "이스라엘 백성이 홍해를 건널 때 지도자는 누구였나요?", opts: ["아브라함", "모세", "여호수아", "다윗"], a: 1, ex: "모세가 지팡이를 들어 홍해를 갈랐습니다." },
@@ -106,7 +106,6 @@ app.get('/', (req, res) => {
       { cat: "신약", q: "예수님이 죽은 지 나흘 된 자를 살리신 기적의 주인공은?", opts: ["야이로의 딸", "나사로", "과부의 아들", "도르가"], a: 1, ex: "예수님은 베다니의 나사로를 무덤에서 살리셨습니다." }
     ];
 
-    // 현재 날짜 기준의 시드값 생성
     function getTodaySeed() {
       const d = new Date();
       const start = new Date(d.getFullYear(), 0, 0);
@@ -118,7 +117,6 @@ app.get('/', (req, res) => {
       return \`\${d.getFullYear()}-\${String(d.getMonth() + 1).padStart(2, "0")}-\${String(d.getDate()).padStart(2, "0")}\`;
     }
 
-    // 시드 기반 랜덤 생성기 (Mulberry32 알고리즘)
     function seededRandom(seed) {
       return function() {
         var t = seed += 0x6D2B79F5;
@@ -133,14 +131,14 @@ app.get('/', (req, res) => {
       const [isDark, setIsDark] = useState(false);
 
       useEffect(() => {
-        const savedTheme = localStorage.getItem('dawnstar-theme');
+        const savedTheme = localStorage.getItem('hanshin-qt-theme');
         if (savedTheme === 'dark') setIsDark(true);
       }, []);
 
       const toggleTheme = () => {
         const newTheme = !isDark;
         setIsDark(newTheme);
-        localStorage.setItem('dawnstar-theme', newTheme ? 'dark' : 'light');
+        localStorage.setItem('hanshin-qt-theme', newTheme ? 'dark' : 'light');
       };
 
       const C = isDark ? darkTheme : lightTheme;
@@ -157,6 +155,7 @@ app.get('/', (req, res) => {
             onClick={toggleTheme}
             className="fixed bottom-6 right-6 p-3 rounded-full shadow-lg transition-transform hover:scale-110 flex items-center justify-center text-xl"
             style={{ background: C.boxBg, border: \`1px solid \${C.line}\`, color: C.ink, width: '50px', height: '50px' }}
+            title="다크/라이트 모드 전환"
           >
             {isDark ? "☀️" : "🌙"}
           </button>
@@ -168,11 +167,11 @@ app.get('/', (req, res) => {
       return (
         <div className="mb-7">
           <div className="flex items-center gap-2 mb-1">
-            <span>✨</span>
-            <span style={{ color: C.goldDeep, fontFamily: SANS, fontSize: 12, letterSpacing: "0.12em" }}>DAWN STAR</span>
+            <span>✝️</span>
+            <span style={{ color: C.goldDeep, fontFamily: SANS, fontSize: 12, letterSpacing: "0.12em" }}>HANSHIN UNIVERSITY</span>
           </div>
-          <h1 style={{ fontFamily: SERIF, fontSize: 28, fontWeight: 700, color: C.ink, letterSpacing: "-0.01em" }}>새벽별</h1>
-          <p style={{ color: C.inkSoft, fontSize: 13, marginTop: 4 }}>매일 새로운 말씀과 퀴즈로 여는 하루</p>
+          <h1 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 700, color: C.ink, letterSpacing: "-0.01em" }}>한신대 교목실 Q.T</h1>
+          <p style={{ color: C.inkSoft, fontSize: 13, marginTop: 4 }}>말씀과 기도로 거룩한 하루를 여는 시간</p>
         </div>
       );
     }
@@ -200,7 +199,7 @@ app.get('/', (req, res) => {
       const [journal, setJournal] = useState("");
       const [savedAt, setSavedAt] = useState(null);
       const [streak, setStreak] = useState([]);
-      const key = \`qt-journal:\${todayStr()}\`;
+      const key = \`hanshin-qt:\${todayStr()}\`;
 
       useEffect(() => {
         const savedData = localStorage.getItem(key);
@@ -218,7 +217,7 @@ app.get('/', (req, res) => {
           const d = new Date();
           d.setDate(d.getDate() - i);
           const ds = \`\${d.getFullYear()}-\${String(d.getMonth() + 1).padStart(2, "0")}-\${String(d.getDate()).padStart(2, "0")}\`;
-          days.push({ date: ds, done: !!localStorage.getItem(\`qt-journal:\${ds}\`) });
+          days.push({ date: ds, done: !!localStorage.getItem(\`hanshin-qt:\${ds}\`) });
         }
         setStreak(days);
       }, [key]);
@@ -256,7 +255,7 @@ app.get('/', (req, res) => {
 
           <div className="mb-6">
             <h3 style={{ fontFamily: SERIF, fontSize: 15, marginBottom: 10, color: C.ink }}>오늘의 묵상 기록</h3>
-            <textarea value={journal} onChange={(e) => setJournal(e.target.value)} placeholder="오늘 말씀을 읽으며 든 생각을 적어보세요." rows="5"
+            <textarea value={journal} onChange={(e) => setJournal(e.target.value)} placeholder="오늘 말씀을 읽으며 든 생각과 기도를 적어보세요." rows="5"
               style={{ width: "100%", background: C.boxBg, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: 14, fontSize: 14, outline: "none" }} />
             <div className="flex items-center justify-between mt-3">
               <span style={{ fontSize: 12, color: C.inkSoft }}>{savedAt ? \`저장완료 \${new Date(savedAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}\` : "아직 기록이 없습니다."}</span>
@@ -282,9 +281,6 @@ app.get('/', (req, res) => {
     }
 
     function QuizView({ C }) {
-      // 똑똑한 퀴즈 셔플러 (Seeded Shuffle)
-      // 오늘 날짜에 의존하므로, 오늘 하루 종일은 새로고침해도 동일한 5문제가 나옵니다.
-      // 내일이 되면 완전히 새로운 5문제 조합이 출제됩니다!
       const dailyQuizzes = useMemo(() => {
         const seed = getTodaySeed();
         const rand = seededRandom(seed);
@@ -324,7 +320,7 @@ app.get('/', (req, res) => {
           <div className="text-center py-10" style={{ background: C.boxBg, borderRadius: 8, padding: 30, border: \`1px solid \${C.line}\` }}>
             <p style={{ color: C.goldDeep, fontSize: 12, letterSpacing: "0.1em" }}>QUIZ COMPLETE</p>
             <p style={{ fontFamily: SERIF, fontSize: 40, margin: "10px 0 6px", color: C.ink }}>{score} / {total}</p>
-            <p style={{ color: C.inkSoft, fontSize: 14, marginBottom: 24 }}>오늘의 퀴즈를 모두 마쳤습니다! 훌륭해요.</p>
+            <p style={{ color: C.inkSoft, fontSize: 14, marginBottom: 24 }}>오늘의 성경 퀴즈를 모두 마쳤습니다! 은혜로운 하루 보내세요.</p>
             <button onClick={restart} style={{ background: C.ink, color: C.paper, fontSize: 13, padding: "10px 20px", borderRadius: 4 }}>🔄 다시 풀기</button>
           </div>
         );
