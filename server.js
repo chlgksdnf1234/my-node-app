@@ -276,7 +276,6 @@ app.get('/', (req, res) => {
 
       return (
         <div>
-          {/* 말씀 영역: 첫 글자(드롭캡) 세로 정렬 및 간격 완벽 수정 */}
           <div style={{ background: C.boxBg, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: "22px 22px 20px", marginBottom: 22, position: "relative" }}>
             <div style={{ position: "absolute", top: -10, left: 20, background: C.gold, color: "#fff", fontSize: 11, padding: "3px 10px", borderRadius: 2 }}>{entry.lead}</div>
             <p style={{ color: C.goldDeep, fontSize: 12, marginTop: 4, marginBottom: 10 }}>{entry.ref}</p>
@@ -464,47 +463,47 @@ app.get('/', (req, res) => {
 
             <div style={{ padding: '20px' }}>
               <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>📍</span> <span>경기도 오산시 한신대길 137, 샬롬채플실(대학교회)</span>
+                <span>📍</span> <span>경기도 오산시 한신대길 137, 샬롬채플실</span>
               </div>
 
-              {/* 지도 마커 위치를 왼쪽 위 대학교회 위치(37.1936, 127.0210)로 정확히 이동 */}
-              <div style={{ width: '100%', height: '260px', borderRadius: 8, overflow: 'hidden', border: \`1px solid \${C.line}\`, marginBottom: '16px', position: 'relative', background: '#F8F9FA' }}>
+              {/* 지도 영역: overflow: hidden과 높이 조절로 저작권 문구 영역 깔끔하게 숨김 처리 */}
+              <div style={{ width: '100%', height: '240px', borderRadius: 8, overflow: 'hidden', border: \`1px solid \${C.line}\`, marginBottom: '16px', position: 'relative', background: '#F8F9FA' }}>
                 <iframe 
                   width="100%" 
-                  height="100%" 
+                  height="275px" 
                   frameBorder="0" 
                   scrolling="no" 
                   marginHeight="0" 
                   marginWidth="0" 
                   src="https://www.openstreetmap.org/export/embed.html?bbox=127.0185%2C37.1920%2C127.0235%2C37.1950&amp;layer=mapnik&amp;marker=37.1936%2C127.0210"
-                  style={{ border: 0, filter: 'contrast(1.05) saturate(1.1)' }}
+                  style={{ border: 0, filter: 'contrast(1.05) saturate(1.1)', marginTop: '-15px' }}
                 ></iframe>
               </div>
 
-              {/* 간결해진 안내 카드 문구 */}
+              {/* 문구 수정: 대학교회 삭제 및 샬롬채플실 표기 */}
               <div style={{ background: C.paper, border: \`1px solid \${C.line}\`, borderRadius: 8, padding: '14px', fontSize: 13, lineHeight: 1.6, marginBottom: '16px' }}>
                 <p style={{ fontWeight: 'bold', marginBottom: 6, color: C.goldDeep, display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span>🚗</span> 찾아오시는 길
                 </p>
                 <ul style={{ paddingLeft: '18px', margin: 0, color: C.inkSoft, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <li>한신대 정문 진입 후 대학교회(샬롬채플실) 방향 도보 이동</li>
+                  <li>한신대 정문 진입 후 샬롬채플실 방향 도보 이동</li>
                   <li>캠퍼스 내 지정 주차 공간 이용 가능</li>
                 </ul>
               </div>
 
-              {/* 네이버 지도, 카카오맵, 티맵 길찾기 버튼 추가 */}
+              {/* 네이버 지도, 카카오맵, T맵 길찾기 버튼 (초록색 대신 깔끔한 검정/포인트 색상 조합) */}
               <div className="flex flex-col gap-2">
                 <a 
-                  href="https://map.naver.com/p/search/%ED%95%9C%EC%8B%A0%EB%8C%80%ED%95%99%EA%B5%90%20%EB%8C%80%ED%95%99%EA%B5%90%ED%9A%8C" 
+                  href="https://map.naver.com/p/search/%ED%95%9C%EC%8B%A0%EB%8C%80%ED%95%99%EA%B5%90%20%EC%82%샬롬채플" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  style={{ background: '#03C75A', color: '#FFFFFF', fontSize: 13, fontWeight: 'bold', padding: '12px', borderRadius: 6, textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                  style={{ background: '#23304A', color: '#FFFFFF', fontSize: 13, fontWeight: 'bold', padding: '12px', borderRadius: 6, textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 >
-                  🟢 네이버 지도 길찾기
+                  🗺️ 네이버 지도 길찾기
                 </a>
                 <div className="flex gap-2">
                   <a 
-                    href="https://map.kakao.com/?q=한신대학교대학교회" 
+                    href="https://map.kakao.com/?q=한신대학교샬롬채플실" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     style={{ flex: 1, background: '#FEE500', color: '#191919', fontSize: 13, fontWeight: 'bold', padding: '11px', borderRadius: 6, textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
