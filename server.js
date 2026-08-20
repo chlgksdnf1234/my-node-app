@@ -1,6 +1,36 @@
 const express = require('express');
 const app = express();
 
+app.use(express.json());
+
+// 서버 메모리에 모든 사용자의 제출 내역 저장 (서버 재시작 시 초기화됨)
+let sharedQtRecords = [];
+let sharedQuizRecords = [];
+
+app.get('/api/data', (req, res) => {
+  res.json({ qt: sharedQtRecords, quiz: sharedQuizRecords });
+});
+
+app.post('/api/qt', (req, res) => {
+  const { date, text, timestamp } = req.body;
+  if (!text) return res.status(400).send('Empty');
+  
+  // 같은 날짜의 기존 기록이 있다면 덮어쓰기, 없으면 추가
+  const existingIndex = sharedQtRecords.findIndex(item => item.date === date);
+  if (existingIndex >= 0) {
+    sharedQtRecords[existingIndex] = { date, text, timestamp };
+  } else {
+    sharedQtRecords.push({ date, text, timestamp });
+  }
+  res.send({ success: true });
+});
+
+app.post('/api/quiz', (req, res) => {
+  const { date, score, total } = req.body;
+  sharedQuizRecords.push({ date, score, total, timestamp: Date.now() });
+  res.send({ success: true });
+});
+
 app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="ko">
@@ -37,7 +67,6 @@ app.get('/', (req, res) => {
     const SERIF = "'Nanum Myeongjo', serif";
     const SANS = "'Noto Sans KR', sans-serif";
 
-    // ---- 큐티 31일치 ----
     const QT_DATA = [
       { ref: "시편 23:1", verse: "여호와는 나의 목자시니 내게 부족함이 없으리로다.", lead: "돌보심", questions: ["오늘 내게 가장 필요한 채움은 무엇인가요?", "목자 되신 주님께 나의 부족함을 기도로 맡겨보세요."] },
       { ref: "마 6:34", verse: "그러므로 내일 일을 위하여 염려하지 말라 내일 일은 내일이 염려할 것이요...", lead: "오늘", questions: ["내가 미리 당겨서 하는 걱정은 무엇인가요?", "오늘 하루에만 집중하기 위해 내려놓을 생각은 무엇인가요?"] },
@@ -72,7 +101,6 @@ app.get('/', (req, res) => {
       { ref: "애 3:22-23", verse: "여호와의 인자와 긍휼이 무궁하시므로 우리가 진멸되지 아니함이니이다 이것들이 아침마다 새로우니 주의 성실하심이 크시도소이다.", lead: "새로움", questions: ["어제 지은 죄나 실수 때문에 오늘도 마음이 무겁나요?", "아침마다 새롭게 부어주시는 자비와 긍휼을 찬양해보세요."] }
     ];
 
-    // ---- 퀴즈 데이터 ----
     const QUIZ_DATA = [
       { cat: "넌센스", q: "김목민의 연애 횟수는??", type: "choice", opts: ["1회", "2회", "3회", "4회"], a: 3, ex: "꼴에 생각보다 많이 했습니다." },
       { cat: "넌센스", q: "김목민의 생일은??", type: "choice", opts: ["5월5일", "7월3일", "6월4일", "12월25일"], a: 2, ex: "김목민은 6월4일에 모 박경미 부 김명종사이에서 태어났습니다." },
@@ -163,7 +191,7 @@ app.get('/', (req, res) => {
     function QTView({ C }) {
       const dayOfMonth = new Date().getDate();
       const idx = (dayOfMonth - 1) % QT_DATA.length;
-      const entry = QT_DATA.length > 0 ? QT_DATA[idx] : null;
+      const entry = QT_DATA[idx];
       
       const [journal, setJournal] = useState("");
       const [savedAt, setSavedAt] = useState(null);
@@ -178,31 +206,25 @@ app.get('/', (req, res) => {
             setJournal(parsed.text || "");
             setSavedAt(parsed.timestamp || null);
           } catch(e) {}
-        } else {
-          setJournal("");
-          setSavedAt(null);
         }
-        
-        const days = [];
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          const ds = \`\${d.getFullYear()}-\${String(d.getMonth() + 1).padStart(2, "0")}-\${String(d.getDate()).padStart(2, "0")}\`;
-          days.push({ date: ds, done: !!localStorage.getItem(\`hanshin-qt:\${ds}\`) });
-        }
-        setStreak(days);
       }, [key]);
 
       function handleSave() {
         if (!journal.trim()) return;
         const now = Date.now();
         const dataObj = { text: journal, timestamp: now };
+        
+        // 내 브라우저에 저장
         localStorage.setItem(key, JSON.stringify(dataObj));
         setSavedAt(now);
-        setStreak((prev) => prev.map((d) => (d.date === todayStr() ? { ...d, done: true } : d)));
-      }
 
-      if (!entry) return null;
+        // 서버로 전송하여 모든 사용자가 볼 수 있게 공유
+        fetch('/api/qt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date: todayStr(), text: journal, timestamp: now })
+        }).catch(err => console.error(err));
+      }
 
       return (
         <div>
@@ -236,20 +258,6 @@ app.get('/', (req, res) => {
               <button onClick={handleSave} style={{ background: C.ink, color: C.paper, fontSize: 13, padding: "8px 16px", borderRadius: 4 }}>✅ 저장</button>
             </div>
           </div>
-
-          {streak.length > 0 && (
-            <div>
-              <h3 style={{ fontFamily: SERIF, fontSize: 15, marginBottom: 10, color: C.ink }}>이번 주 묵상</h3>
-              <div className="flex gap-2">
-                {streak.map((d) => (
-                  <div key={d.date} className="flex flex-col items-center gap-1">
-                    <div style={{ width: 26, height: 26, borderRadius: "50%", background: d.done ? C.sage : C.boxBg, border: \`1px solid \${d.done ? C.sage : C.line}\` }} />
-                    <span style={{ fontSize: 10, color: C.inkSoft }}>{["일", "월", "화", "수", "목", "금", "토"][new Date(d.date).getDay()]}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       );
     }
@@ -283,10 +291,15 @@ app.get('/', (req, res) => {
       function next() {
         if (i + 1 >= total) {
           setFinished(true);
-          try {
-            const quizRecordKey = \`hanshin-quiz-record:\${Date.now()}\`;
-            localStorage.setItem(quizRecordKey, JSON.stringify({ date: todayStr(), score: score + (isTextCorrect ? 1 : 0), total }));
-          } catch(e) {}
+          const finalScore = score + (isTextCorrect ? 1 : 0);
+          
+          // 서버로 퀴즈 완료 결과 전송
+          fetch('/api/quiz', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date: todayStr(), score: finalScore, total })
+          }).catch(err => console.error(err));
+          
           return;
         }
         setI((v) => v + 1);
@@ -393,44 +406,33 @@ app.get('/', (req, res) => {
         e.preventDefault();
         if (id === "admin12" && pw === "admin12") {
           setIsLoggedIn(true);
-          loadLogs();
+          fetchData();
         } else {
           alert("아이디 또는 비밀번호가 올바르지 않습니다.");
         }
       }
 
-      function loadLogs() {
-        const qts = [];
-        const quzs = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const k = localStorage.key(i);
-          if (k.startsWith("hanshin-qt:")) {
-            try {
-              const val = JSON.parse(localStorage.getItem(k));
-              qts.push({ date: k.replace("hanshin-qt:", ""), ...val });
-            } catch(e) {}
-          } else if (k.startsWith("hanshin-quiz-record:")) {
-            try {
-              const val = JSON.parse(localStorage.getItem(k));
-              quzs.push({ id: k, ...val });
-            } catch(e) {}
-          }
-        }
-        setQtRecords(qts.sort((a,b) => b.date.localeCompare(a.date)));
-        setQuizRecords(quzs);
+      function fetchData() {
+        fetch('/api/data')
+          .then(res => res.json())
+          .then(data => {
+            setQtRecords(data.qt.sort((a,b) => b.timestamp - a.timestamp));
+            setQuizRecords(data.quiz.sort((a,b) => b.timestamp - a.timestamp));
+          })
+          .catch(err => console.error(err));
       }
 
       return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
           <div style={{ background: C.boxBg, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 8, width: '100%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto', padding: 24 }}>
             <div className="flex justify-between items-center mb-4">
-              <h2 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700 }}>관리자 모드</h2>
+              <h2 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700 }}>관리자 모드 (전체 사용자 조회)</h2>
               <button onClick={onClose} style={{ fontSize: 18, fontWeight: 'bold' }}>✕</button>
             </div>
 
             {!isLoggedIn ? (
               <form onSubmit={handleLogin} className="flex flex-col gap-3">
-                <p style={{ fontSize: 13, color: C.inkSoft }}>관리자 계정으로 로그인하여 제출된 내역을 확인하세요.</p>
+                <p style={{ fontSize: 13, color: C.inkSoft }}>관리자 계정으로 로그인하여 모든 사용자의 제출 내역을 확인하세요.</p>
                 <input type="text" placeholder="아이디" value={id} onChange={(e) => setId(e.target.value)} 
                   style={{ background: C.paper, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: 10, fontSize: 14, outline: 'none' }} />
                 <input type="password" placeholder="비밀번호" value={pw} onChange={(e) => setPw(e.target.value)} 
@@ -439,7 +441,10 @@ app.get('/', (req, res) => {
               </form>
             ) : (
               <div>
-                <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, marginTop: 10 }}>📝 오늘의 묵상 기록 목록</h3>
+                <div className="flex justify-between items-center mb-2">
+                  <h3 style={{ fontSize: 16, fontWeight: 700 }}>📝 전체 묵상 기록</h3>
+                  <button onClick={fetchData} style={{ fontSize: 11, padding: '2px 8px', background: C.paper, border: \`1px solid \${C.line}\`, borderRadius: 4 }}>🔄새로고침</button>
+                </div>
                 {qtRecords.length === 0 ? (
                   <p style={{ fontSize: 13, color: C.inkSoft, marginBottom: 15 }}>저장된 묵상 기록이 없습니다.</p>
                 ) : (
@@ -454,7 +459,7 @@ app.get('/', (req, res) => {
                   </div>
                 )}
 
-                <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>🎯 퀴즈 완료 내역</h3>
+                <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>🎯 전체 퀴즈 완료 내역</h3>
                 {quizRecords.length === 0 ? (
                   <p style={{ fontSize: 13, color: C.inkSoft }}>완료된 퀴즈 내역이 없습니다.</p>
                 ) : (
@@ -463,6 +468,7 @@ app.get('/', (req, res) => {
                       <div key={idx} style={{ background: C.paper, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: 10, fontSize: 13 }}>
                         <div>응시 날짜: {r.date}</div>
                         <div style={{ fontWeight: 'bold', color: C.sageDeep }}>점수: {r.score} / {r.total} 점</div>
+                        <div style={{ fontSize: 10, color: C.inkSoft, marginTop: 2 }}>완료시간: {new Date(r.timestamp).toLocaleString()}</div>
                       </div>
                     ))}
                   </div>
