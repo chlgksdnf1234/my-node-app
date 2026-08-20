@@ -18,7 +18,7 @@ const C = {
 const SERIF = "'Noto Serif KR','Nanum Myeongjo',Georgia,serif";
 const SANS = "'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif";
 
-// ---- 큐티(묵상) 데이터 : 원문을 참고해 짧게 재구성한 문장 + 출처 표기 ----
+// ---- 큐티(묵상) 데이터 ----
 const QT_DATA = [
   {
     ref: "시편 23편 1절",
@@ -120,7 +120,7 @@ function dayIndexSeed() {
 export default function App() {
   const [tab, setTab] = useState("qt");
   return (
-    <div style={{ background: C.paper, minHeight: "100%", fontFamily: SANS, color: C.ink }} className="w-full">
+    <div style={{ background: C.paper, minHeight: "100vh", fontFamily: SANS, color: C.ink }} className="w-full">
       <div className="max-w-xl mx-auto px-5 pt-8 pb-16">
         <Header />
         <TabBar tab={tab} setTab={setTab} />
@@ -189,52 +189,41 @@ function QTView() {
   const key = `qt-journal:${todayStr()}`;
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const r = await window.storage.get(key);
-        if (!cancelled && r) {
-          const parsed = JSON.parse(r.value);
-          setJournal(parsed.text || "");
-          setSavedAt(parsed.timestamp || null);
-        }
-      } catch (e) {
-        // 저장된 기록 없음
+    // 웹 표준 localStorage로 데이터 불러오기
+    try {
+      const savedData = localStorage.getItem(key);
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        setJournal(parsed.text || "");
+        setSavedAt(parsed.timestamp || null);
       }
-      // 최근 7일 스트릭
-      const days = [];
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-        days.push({ date: ds, done: false });
-      }
-      try {
-        const list = await window.storage.list("qt-journal:");
-        const doneSet = new Set((list && list.keys) || []);
-        days.forEach((d) => {
-          if (doneSet.has(`qt-journal:${d.date}`)) d.done = true;
-        });
-      } catch (e) {
-        // 무시
-      }
-      if (!cancelled) setStreak(days);
-    })();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    } catch (e) {
+      console.error("저장된 묵상 기록을 불러오는 중 오류 발생:", e);
+    }
 
-  async function handleSave() {
+    // 최근 7일 스트릭(달성 기록) 확인
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      
+      const isDone = !!localStorage.getItem(`qt-journal:${ds}`);
+      days.push({ date: ds, done: isDone });
+    }
+    setStreak(days);
+  }, [key]);
+
+  function handleSave() {
     if (!journal.trim()) return;
     const now = Date.now();
     try {
-      await window.storage.set(key, JSON.stringify({ text: journal, timestamp: now }));
+      // 웹 표준 localStorage에 저장하기
+      localStorage.setItem(key, JSON.stringify({ text: journal, timestamp: now }));
       setSavedAt(now);
       setStreak((prev) => prev.map((d) => (d.date === todayStr() ? { ...d, done: true } : d)));
     } catch (e) {
-      // 저장 실패 시 조용히 무시 (UI는 계속 사용 가능)
+      console.error("저장 실패:", e);
     }
   }
 
