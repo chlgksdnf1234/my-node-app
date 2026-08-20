@@ -276,13 +276,14 @@ app.get('/', (req, res) => {
 
       return (
         <div>
+          {/* 말씀 영역: 첫 글자(드롭캡) 세로 정렬 및 간격 완벽 수정 */}
           <div style={{ background: C.boxBg, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: "22px 22px 20px", marginBottom: 22, position: "relative" }}>
             <div style={{ position: "absolute", top: -10, left: 20, background: C.gold, color: "#fff", fontSize: 11, padding: "3px 10px", borderRadius: 2 }}>{entry.lead}</div>
             <p style={{ color: C.goldDeep, fontSize: 12, marginTop: 4, marginBottom: 10 }}>{entry.ref}</p>
-            <p style={{ fontFamily: SERIF, fontSize: 20, lineHeight: 1.7, color: C.ink }}>
-              <span style={{ fontSize: 40, color: C.gold, fontWeight: 700, float: "left", lineHeight: 0.75, marginRight: 6, marginTop: 6 }}>{entry.verse[0]}</span>
-              {entry.verse.slice(1)}
-            </p>
+            <div style={{ fontFamily: SERIF, fontSize: 20, lineHeight: 1.8, color: C.ink, display: "flex", alignItems: "flex-start", gap: "8px" }}>
+              <span style={{ fontSize: 38, color: C.gold, fontWeight: 700, lineHeight: 1, display: "inline-block", minWidth: "28px" }}>{entry.verse[0]}</span>
+              <span style={{ flex: 1, paddingTop: "2px" }}>{entry.verse.slice(1)}</span>
+            </div>
           </div>
 
           <div className="mb-6">
@@ -419,7 +420,7 @@ app.get('/', (req, res) => {
                   onChange={(e) => setTextInput(e.target.value)} 
                   disabled={isTextCorrect !== null}
                   placeholder="정답을 입력하세요"
-                  style={{ flex: 1, background: C.boxBg, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: "12px 14px", fontSize: 14, outline: "none" }}
+                  style={{ flex: 1, background: C.boxBg, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: "12px 14px", fontSize: 14, outline: 'none' }}
                 />
                 {isTextCorrect === null && (
                   <button onClick={submitText} style={{ background: C.ink, color: C.paper, fontSize: 13, padding: "0 16px", borderRadius: 4 }}>제출</button>
@@ -452,21 +453,21 @@ app.get('/', (req, res) => {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
           <div style={{ background: C.boxBg, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 12, width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
             
-            {/* 네이버 지도 스타일의 상단 그린 헤더 */}
+            {/* 네이버 지도 스타일 헤더 */}
             <div style={{ background: '#03C75A', color: '#FFFFFF', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTopLeftRadius: 11, borderTopRightRadius: 11 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ background: '#FFFFFF', color: '#03C75A', fontWeight: 'bold', fontSize: '11px', padding: '2px 6px', borderRadius: '4px' }}>N 지도</span>
-                <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>한신대학교 샬롬채플실 길찾기</h2>
+                <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>한신대학교 샬롬채플실 위치</h2>
               </div>
               <button onClick={onClose} style={{ color: '#FFFFFF', fontSize: 18, fontWeight: 'bold', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
             </div>
 
             <div style={{ padding: '20px' }}>
               <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>📍</span> <span>경기도 오산시 한신대길 137, 한신대학교 샬롬채플실</span>
+                <span>📍</span> <span>경기도 오산시 한신대길 137, 샬롬채플실(대학교회)</span>
               </div>
 
-              {/* 네이버 지도처럼 깔끔하고 세련된 미니맵 프레임 */}
+              {/* 지도 마커 위치를 왼쪽 위 대학교회 위치(37.1936, 127.0210)로 정확히 이동 */}
               <div style={{ width: '100%', height: '260px', borderRadius: 8, overflow: 'hidden', border: \`1px solid \${C.line}\`, marginBottom: '16px', position: 'relative', background: '#F8F9FA' }}>
                 <iframe 
                   width="100%" 
@@ -475,41 +476,50 @@ app.get('/', (req, res) => {
                   scrolling="no" 
                   marginHeight="0" 
                   marginWidth="0" 
-                  src="https://www.openstreetmap.org/export/embed.html?bbox=127.0200%2C37.1910%2C127.0250%2C37.1950&amp;layer=mapnik&amp;marker=37.1933281%2C127.0225987"
+                  src="https://www.openstreetmap.org/export/embed.html?bbox=127.0185%2C37.1920%2C127.0235%2C37.1950&amp;layer=mapnik&amp;marker=37.1936%2C127.0210"
                   style={{ border: 0, filter: 'contrast(1.05) saturate(1.1)' }}
                 ></iframe>
               </div>
 
-              {/* 안내 카드 */}
+              {/* 간결해진 안내 카드 문구 */}
               <div style={{ background: C.paper, border: \`1px solid \${C.line}\`, borderRadius: 8, padding: '14px', fontSize: 13, lineHeight: 1.6, marginBottom: '16px' }}>
                 <p style={{ fontWeight: 'bold', marginBottom: 6, color: C.goldDeep, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span>🚗</span> 캠퍼스 오시는 길
+                  <span>🚗</span> 찾아오시는 길
                 </p>
                 <ul style={{ paddingLeft: '18px', margin: 0, color: C.inkSoft, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <li>한신대 정문 진입 후 중앙로를 따라 직진</li>
-                  <li>샬롬채플실(교목실) 이정표 확인 후 도보 이동</li>
-                  <li>행사 및 예배 참여 시 캠퍼스 내 주차 가능</li>
+                  <li>한신대 정문 진입 후 대학교회(샬롬채플실) 방향 도보 이동</li>
+                  <li>캠퍼스 내 지정 주차 공간 이용 가능</li>
                 </ul>
               </div>
 
-              {/* 하단 네이버/구글 지도 바로가기 버튼 */}
-              <div className="flex gap-2">
+              {/* 네이버 지도, 카카오맵, 티맵 길찾기 버튼 추가 */}
+              <div className="flex flex-col gap-2">
                 <a 
-                  href="https://map.naver.com/p/search/%ED%95%9C%EC%8B%A0%EB%8C%80%ED%95%99%EA%B5%90%20%EC%83%샬롬채플" 
+                  href="https://map.naver.com/p/search/%ED%95%9C%EC%8B%A0%EB%8C%80%ED%95%99%EA%B5%90%20%EB%8C%80%ED%95%99%EA%B5%90%ED%9A%8C" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  style={{ flex: 1, background: '#03C75A', color: '#FFFFFF', fontSize: 13, fontWeight: 'bold', padding: '12px', borderRadius: 6, textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                  style={{ background: '#03C75A', color: '#FFFFFF', fontSize: 13, fontWeight: 'bold', padding: '12px', borderRadius: 6, textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 >
-                  🟢 네이버 지도에서 길찾기
+                  🟢 네이버 지도 길찾기
                 </a>
-                <a 
-                  href="https://www.google.com/maps/place/%ED%95%9C%EC%8B%A0%EB%8C%80%ED%95%99%EA%B5%90/data=!4m6!3m5!1s0x357b4116d0196943:0xb56a9d5a27fd63eb!8m2!3d37.1933281!4d127.0225987" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  style={{ background: C.boxBg, color: C.ink, border: \`1px solid \${C.line}\`, fontSize: 13, padding: '12px 16px', borderRadius: 6, textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                  구글맵 ↗
-                </a>
+                <div className="flex gap-2">
+                  <a 
+                    href="https://map.kakao.com/?q=한신대학교대학교회" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{ flex: 1, background: '#FEE500', color: '#191919', fontSize: 13, fontWeight: 'bold', padding: '11px', borderRadius: 6, textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                  >
+                    🟡 카카오맵 길찾기
+                  </a>
+                  <a 
+                    href="https://sksms.tmap.co.kr/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{ flex: 1, background: '#E60012', color: '#FFFFFF', fontSize: 13, fontWeight: 'bold', padding: '11px', borderRadius: 6, textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                  >
+                    🔴 T맵 길찾기
+                  </a>
+                </div>
               </div>
             </div>
 
