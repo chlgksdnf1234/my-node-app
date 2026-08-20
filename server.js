@@ -452,22 +452,22 @@ app.get('/', (req, res) => {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
           <div style={{ background: C.boxBg, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 12, width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
             
-            {/* 네이버 지도 스타일의 상단 헤더 */}
+            {/* 네이버 지도 스타일의 상단 그린 헤더 */}
             <div style={{ background: '#03C75A', color: '#FFFFFF', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTopLeftRadius: 11, borderTopRightRadius: 11 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ background: '#FFFFFF', color: '#03C75A', fontWeight: 'bold', fontSize: '11px', padding: '2px 6px', borderRadius: '4px' }}>N 지도</span>
-                <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>한신대학교 샬롬채플실 위치안내</h2>
+                <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>한신대학교 샬롬채플실 길찾기</h2>
               </div>
               <button onClick={onClose} style={{ color: '#FFFFFF', fontSize: 18, fontWeight: 'bold', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
             </div>
 
             <div style={{ padding: '20px' }}>
               <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>📍</span> <span>경기도 오산시 한신대길 137, 한신대학교 캠퍼스 내 샬롬채플실</span>
+                <span>📍</span> <span>경기도 오산시 한신대길 137, 한신대학교 샬롬채플실</span>
               </div>
 
-              {/* 깔끔한 미니맵 프레임 */}
-              <div style={{ width: '100%', height: '260px', borderRadius: 8, overflow: 'hidden', border: \`1px solid \${C.line}\`, marginBottom: '16px', position: 'relative' }}>
+              {/* 네이버 지도처럼 깔끔하고 세련된 미니맵 프레임 */}
+              <div style={{ width: '100%', height: '260px', borderRadius: 8, overflow: 'hidden', border: \`1px solid \${C.line}\`, marginBottom: '16px', position: 'relative', background: '#F8F9FA' }}>
                 <iframe 
                   width="100%" 
                   height="100%" 
@@ -483,19 +483,19 @@ app.get('/', (req, res) => {
               {/* 안내 카드 */}
               <div style={{ background: C.paper, border: \`1px solid \${C.line}\`, borderRadius: 8, padding: '14px', fontSize: 13, lineHeight: 1.6, marginBottom: '16px' }}>
                 <p style={{ fontWeight: 'bold', marginBottom: 6, color: C.goldDeep, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span>🚗</span> 찾아오시는 길 안내
+                  <span>🚗</span> 캠퍼스 오시는 길
                 </p>
                 <ul style={{ paddingLeft: '18px', margin: 0, color: C.inkSoft, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <li>정문 진입 후 캠퍼스 중앙로를 따라 직진</li>
-                  <li>샬롬채플실 및 교목실 안내 표지판 확인</li>
-                  <li>캠퍼스 내 지정 주차 공간 이용 가능</li>
+                  <li>한신대 정문 진입 후 중앙로를 따라 직진</li>
+                  <li>샬롬채플실(교목실) 이정표 확인 후 도보 이동</li>
+                  <li>행사 및 예배 참여 시 캠퍼스 내 주차 가능</li>
                 </ul>
               </div>
 
-              {/* 하단 링크 버튼 */}
+              {/* 하단 네이버/구글 지도 바로가기 버튼 */}
               <div className="flex gap-2">
                 <a 
-                  href="https://map.naver.com/p/search/%ED%95%9C%EC%8B%A0%EB%8C%80%ED%95%99%EA%B5%90" 
+                  href="https://map.naver.com/p/search/%ED%95%9C%EC%8B%A0%EB%8C%80%ED%95%99%EA%B5%90%20%EC%83%샬롬채플" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   style={{ flex: 1, background: '#03C75A', color: '#FFFFFF', fontSize: 13, fontWeight: 'bold', padding: '12px', borderRadius: 6, textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
@@ -627,7 +627,7 @@ app.get('/', (req, res) => {
       );
     }
 
-    const root = ReactDOM.createRoot(getElementById('root'));
+    const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
   </script>
 </body>
