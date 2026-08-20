@@ -72,7 +72,7 @@ app.get('/', (req, res) => {
       { ref: "애 3:22-23", verse: "여호와의 인자와 긍휼이 무궁하시므로 우리가 진멸되지 아니함이니이다 이것들이 아침마다 새로우니 주의 성실하심이 크시도소이다.", lead: "새로움", questions: ["어제 지은 죄나 실수 때문에 오늘도 마음이 무겁나요?", "아침마다 새롭게 부어주시는 자비와 긍휼을 찬양해보세요."] }
     ];
 
-    // ---- 퀴즈 데이터 (주관식 문제 포함) ----
+    // ---- 퀴즈 데이터 ----
     const QUIZ_DATA = [
       { cat: "넌센스", q: "김목민의 연애 횟수는??", type: "choice", opts: ["1회", "2회", "3회", "4회"], a: 3, ex: "꼴에 생각보다 많이 했습니다." },
       { cat: "넌센스", q: "김목민의 생일은??", type: "choice", opts: ["5월5일", "7월3일", "6월4일", "12월25일"], a: 2, ex: "김목민은 6월4일에 모 박경미 부 김명종사이에서 태어났습니다." },
@@ -283,7 +283,6 @@ app.get('/', (req, res) => {
       function next() {
         if (i + 1 >= total) {
           setFinished(true);
-          // 퀴즈 결과 로컬스토리지 저장
           try {
             const quizRecordKey = \`hanshin-quiz-record:\${Date.now()}\`;
             localStorage.setItem(quizRecordKey, JSON.stringify({ date: todayStr(), score: score + (isTextCorrect ? 1 : 0), total }));
@@ -396,7 +395,7 @@ app.get('/', (req, res) => {
           setIsLoggedIn(true);
           loadLogs();
         } else {
-          alert("아이디 또는 비밀번호가 올바르지 않습니다. (admin12 / admin12)");
+          alert("아이디 또는 비밀번호가 올바르지 않습니다.");
         }
       }
 
@@ -432,9 +431,9 @@ app.get('/', (req, res) => {
             {!isLoggedIn ? (
               <form onSubmit={handleLogin} className="flex flex-col gap-3">
                 <p style={{ fontSize: 13, color: C.inkSoft }}>관리자 계정으로 로그인하여 제출된 내역을 확인하세요.</p>
-                <input type="text" placeholder="아이디 (admin12)" value={id} onChange={(e) => setId(e.target.value)} 
+                <input type="text" placeholder="아이디" value={id} onChange={(e) => setId(e.target.value)} 
                   style={{ background: C.paper, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: 10, fontSize: 14, outline: 'none' }} />
-                <input type="password" placeholder="비밀번호 (admin12)" value={pw} onChange={(e) => setPw(e.target.value)} 
+                <input type="password" placeholder="비밀번호" value={pw} onChange={(e) => setPw(e.target.value)} 
                   style={{ background: C.paper, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 4, padding: 10, fontSize: 14, outline: 'none' }} />
                 <button type="submit" style={{ background: C.ink, color: C.paper, padding: '10px', borderRadius: 4, fontWeight: 'bold', marginTop: 5 }}>로그인</button>
               </form>
