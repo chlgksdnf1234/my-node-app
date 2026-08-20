@@ -86,7 +86,7 @@ app.get('/', (req, res) => {
       { ref: "사 40:31", verse: "오직 여호와를 앙망하는 자는 새 힘을 얻으리니 독수리가 날개 치며 올라감 같을 것이요...", lead: "새 힘", questions: ["요즘 나를 가장 지치고 무기력하게 만드는 원인은 무엇인가요?", "하나님을 간절히 바랄 때 주시는 '새 힘'을 오늘 구해보세요."] },
       { ref: "요 15:5", verse: "나는 포도나무요 너희는 가지라 그가 내 안에, 내가 그 안에 거하면 사람이 열매를 많이 맺나니...", lead: "거함", questions: ["바쁜 일상 속에서 예수님과 온전히 연결되어 있다고 느끼나요?", "오늘 5분이라도 가지가 나무에 붙어있듯 주님 안에 머무는 시간은 언제로 할까요?"] },
       { ref: "마 5:16", verse: "이같이 너희 빛이 사람 앞에 비치게 하여 그들로 너희 착한 행실을 보고 하늘에 계신 너희 아버지께 영광을 돌리게 하라.", lead: "빛", questions: ["내가 속한 가정이나 직장에서 나는 어떤 빛을 내고 있나요?", "오늘 나의 작은 친절이나 행실이 누군가에게 어떻게 위로가 될 수 있을까요?"] },
-      { ref: "롬 5:8", verse: "우리가 아직 죄인 되었을 때에 그리스도께서 우리를 위하여 죽으심으로 하나님께서 우리에 대한 자기의 사랑을 확증하셨느니라.", lead: "확증", questions: ["나의 부족함에도 불구하고 베푸신 크신 사랑을 묵상해보세요.", "그 십자가의 사랑이 오늘 나의 자존감이 어떻게 회복시키나요?"] },
+      { ref: "롬 5:8", verse: "우리가 아직 죄인 되었을 때에 그리스도께서 우리를 위하여 죽으심으로 하나님께서 우리에 대한 자기의 사랑을 확증하셨느니라.", lead: "확증", questions: ["나의 부족함에도 불구하고 베푸신 크신 사랑을 묵상해보세요.", "그 십자가의 사랑이 오늘 나의 자존감을 어떻게 회복시키나요?"] },
       { ref: "시 139:14", verse: "내가 주께 감사하옴은 나를 지으심이 심히 기묘하심이라 주께서 하시는 일이 기이함을 내 영혼이 잘 아나이다.", lead: "창조", questions: ["내 외모나 성격 중 마음에 들지 않아 불평했던 부분이 있나요?", "하나님의 걸작품인 나 자신을 있는 그대로 사랑하고 칭찬해 보세요."] },
       { ref: "골 3:2", verse: "위의 것을 생각하고 땅의 것을 생각하지 말라.", lead: "시선", questions: ["내 시선과 생각이 너무 세상적인 가치(돈, 명예)에만 쏠려 있지 않나요?", "오늘 나의 초점을 하나님 나라와 영원한 것에 맞추려면 어떻게 해야 할까요?"] },
       { ref: "약 1:5", verse: "너희 중에 누구든지 지혜가 부족하거든 모든 사람에게 후히 주시고 꾸짖지 아니하시는 하나님께 구하라 그리하면 주시리라.", lead: "지혜", questions: ["현재 지혜롭게 풀어나가야 할 인간관계나 문제 상황이 있나요?", "내 생각대로 하지 않고, 하나님의 지혜를 구하는 기도를 드리세요."] },
@@ -215,7 +215,7 @@ app.get('/', (req, res) => {
               onClick={onOpenMap}
               style={{ background: C.boxBg, border: \`1px solid \${C.line}\`, color: C.goldDeep, fontSize: 11, padding: '4px 10px', borderRadius: 4, fontWeight: 'bold' }}
             >
-              🗺️ 한신대학교 채플실 찾아가는 길
+              🗺️ 한신대학교 대학교회 찾아가는 길
             </button>
             <button 
               onClick={onOpenAdmin}
@@ -450,49 +450,69 @@ app.get('/', (req, res) => {
     function MapModal({ C, onClose }) {
       return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-          <div style={{ background: C.boxBg, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 8, width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto', padding: 24 }}>
-            <div className="flex justify-between items-center mb-3">
-              <h2 style={{ fontFamily: SERIF, fontSize: 18, fontWeight: 700 }}>🗺️ 한신대학교 채플실 찾아가는 길</h2>
-              <button onClick={onClose} style={{ fontSize: 18, fontWeight: 'bold' }}>✕</button>
-            </div>
+          <div style={{ background: C.boxBg, color: C.ink, border: \`1px solid \${C.line}\`, borderRadius: 12, width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
             
-            <p style={{ fontSize: 13, color: C.inkSoft, marginBottom: 12 }}>
-              경기도 오산시 한신대길 137 한신대학교 캠퍼스 내에 위치해 있습니다.
-            </p>
-
-            {/* 지도 이미지 영역 (OpenStreetMap 기반 임베디드 뷰) */}
-            <div style={{ width: '100%', height: '280px', borderRadius: 6, overflow: 'hidden', border: \`1px solid \${C.line}\`, marginBottom: 14 }}>
-              <iframe 
-                width="100%" 
-                height="100%" 
-                frameBorder="0" 
-                scrolling="no" 
-                marginHeight="0" 
-                marginWidth="0" 
-                src="https://www.openstreetmap.org/export/embed.html?bbox=127.0200%2C37.1910%2C127.0250%2C37.1950&amp;layer=mapnik&amp;marker=37.1933281%2C127.0225987"
-                style={{ border: 0 }}
-              ></iframe>
+            {/* 네이버 지도 스타일의 상단 헤더 */}
+            <div style={{ background: '#03C75A', color: '#FFFFFF', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTopLeftRadius: 11, borderTopRightRadius: 11 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ background: '#FFFFFF', color: '#03C75A', fontWeight: 'bold', fontSize: '11px', padding: '2px 6px', borderRadius: '4px' }}>N 지도</span>
+                <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>한신대학교 대학교회 위치안내</h2>
+              </div>
+              <button onClick={onClose} style={{ color: '#FFFFFF', fontSize: 18, fontWeight: 'bold', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
             </div>
 
-            <div style={{ background: C.paper, border: \`1px solid \${C.line}\`, borderRadius: 6, padding: '12px 14px', fontSize: 13, lineHeight: 1.6 }} className="mb-4">
-              <p style={{ fontWeight: 'bold', marginBottom: 4, color: C.goldDeep }}>📍 찾아오시는 안내</p>
-              <ul style={{ paddingLeft: '16px', listStyleType: 'disc', color: C.inkSoft }}>
-                <li>정문 진입 후 중앙도서관 및퍼시픽관 방향으로 직진</li>
-                <li>교목실 및 채플 안내 표지판을 따라 도보 이동</li>
-                <li>대중교통 이용 시 오산역 또는 병점역에서 시내버스 환승</li>
-              </ul>
+            <div style={{ padding: '20px' }}>
+              <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>📍</span> <span>경기도 오산시 한신대길 137, 한신대학교 캠퍼스 내 대학교회</span>
+              </div>
+
+              {/* 깔끔한 미니맵 프레임 */}
+              <div style={{ width: '100%', height: '260px', borderRadius: 8, overflow: 'hidden', border: \`1px solid \${C.line}\`, marginBottom: '16px', position: 'relative' }}>
+                <iframe 
+                  width="100%" 
+                  height="100%" 
+                  frameBorder="0" 
+                  scrolling="no" 
+                  marginHeight="0" 
+                  marginWidth="0" 
+                  src="https://www.openstreetmap.org/export/embed.html?bbox=127.0200%2C37.1910%2C127.0250%2C37.1950&amp;layer=mapnik&amp;marker=37.1933281%2C127.0225987"
+                  style={{ border: 0, filter: 'contrast(1.05) saturate(1.1)' }}
+                ></iframe>
+              </div>
+
+              {/* 안내 카드 */}
+              <div style={{ background: C.paper, border: \`1px solid \${C.line}\`, borderRadius: 8, padding: '14px', fontSize: 13, lineHeight: 1.6, marginBottom: '16px' }}>
+                <p style={{ fontWeight: 'bold', marginBottom: 6, color: C.goldDeep, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span>🚗</span> 찾아오시는 길 안내
+                </p>
+                <ul style={{ paddingLeft: '18px', margin: 0, color: C.inkSoft, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <li>정문 진입 후 캠퍼스 중앙로를 따라 직진</li>
+                  <li>대학교회 이정표 및 교목실 안내 표지판 확인</li>
+                  <li>캠퍼스 내 지정 주차 공간 이용 가능</li>
+                </ul>
+              </div>
+
+              {/* 하단 링크 버튼 */}
+              <div className="flex gap-2">
+                <a 
+                  href="https://map.naver.com/p/search/%ED%95%9C%EC%8B%A0%EB%8C%80%ED%95%99%EA%B5%90" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ flex: 1, background: '#03C75A', color: '#FFFFFF', fontSize: 13, fontWeight: 'bold', padding: '12px', borderRadius: 6, textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                >
+                  🟢 네이버 지도에서 길찾기
+                </a>
+                <a 
+                  href="https://www.google.com/maps/place/%ED%95%9C%EC%8B%A0%EB%8C%80%ED%95%99%EA%B5%90/data=!4m6!3m5!1s0x357b4116d0196943:0xb56a9d5a27fd63eb!8m2!3d37.1933281!4d127.0225987" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ background: C.boxBg, color: C.ink, border: \`1px solid \${C.line}\`, fontSize: 13, padding: '12px 16px', borderRadius: 6, textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  구글맵 ↗
+                </a>
+              </div>
             </div>
 
-            <div className="flex justify-end">
-              <a 
-                href="https://www.google.com/maps/place/%ED%95%9C%EC%8B%A0%EB%8C%80%ED%95%99%EA%B5%90/data=!4m6!3m5!1s0x357b4116d0196943:0xb56a9d5a27fd63eb!8m2!3d37.1933281!4d127.0225987!16s%2Fm%2F06w5yct" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                style={{ background: C.ink, color: C.paper, fontSize: 13, padding: '8px 16px', borderRadius: 4, textDecoration: 'none', display: 'inline-block' }}
-              >
-                구글 지도에서 크게 보기 ↗
-              </a>
-            </div>
           </div>
         </div>
       );
