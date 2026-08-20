@@ -14,40 +14,54 @@ app.post('/api/gemini', async (req, res) => {
 
   const { prompt } = req.body;
 
-  // 무료 요금제에서 가장 안정적이고 빠르게 작동하는 공식 모델
-  const models = ['gemini-1.5-flash'];
+  try {
+    // [해결책 1단계] 내 API 키로 쓸 수 있는 모델 목록을 구글에 먼저 직접 물어봅니다.
+    const listResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
+    const listData = await listResponse.json();
 
-  let lastError = null;
-
-  for (const model of models) {
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
-        return res.json({ text: data.candidates[0].content.parts[0].text });
-      } else {
-        lastError = data.error?.message || `모델 ${model} 호출 실패`;
-        console.error(`[서버 로그] ${model} 실패 사유:`, lastError);
-      }
-    } catch (err) {
-      lastError = err.message;
-      console.error(`[서버 로그] ${model} 요청 중 오류:`, err.message);
+    if (!listResponse.ok) {
+       console.error('모델 목록 가져오기 실패:', listData);
+       return res.status(500).json({ error: 'API 키가 유효하지 않거나 구글 서버에 연결할 수 없습니다.' });
     }
-  }
 
-  console.error('Gemini API 최종 에러:', lastError);
-  res.status(500).json({ error: lastError || 'Gemini API 호출에 실패했습니다.' });
+    // [해결책 2단계] 텍스트 생성(generateContent)을 지원하는 모델만 걸러냅니다.
+    const availableModels = listData.models.filter(m => 
+      m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent')
+    );
+
+    if (availableModels.length === 0) {
+       return res.status(500).json({ error: '현재 API 키로 사용할 수 있는 텍스트 생성 모델이 전혀 없습니다.' });
+    }
+
+    // [해결책 3단계] 사용 가능한 모델 중 빠르고 가벼운 'flash' 모델을 최우선으로 찾고, 없으면 사용 가능한 첫 번째 모델을 자동 선택합니다.
+    let selectedModel = availableModels.find(m => m.name.includes('flash')) || availableModels[0];
+    console.log(`[AI 자동 선택 모델] ${selectedModel.name} 채택됨`);
+
+    // [해결책 4단계] 자동으로 찾은 모델(selectedModel.name)을 주소에 넣어 안전하게 요청합니다.
+    const generateResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/${selectedModel.name}:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      }
+    );
+
+    const generateData = await generateResponse.json();
+
+    if (generateResponse.ok && generateData.candidates?.[0]?.content?.parts?.[0]?.text) {
+      return res.json({ text: generateData.candidates[0].content.parts[0].text });
+    } else {
+      console.error('텍스트 생성 실패:', generateData);
+      return res.status(500).json({ error: generateData.error?.message || '텍스트 생성에 실패했습니다.' });
+    }
+
+  } catch (err) {
+    console.error('서버 내부 통신 오류:', err.message);
+    return res.status(500).json({ error: '구글 API 서버와의 통신 중 오류가 발생했습니다: ' + err.message });
+  }
 });
 
 // 2. 메인 페이지
