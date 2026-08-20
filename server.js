@@ -14,8 +14,8 @@ app.post('/api/gemini', async (req, res) => {
 
   const { prompt } = req.body;
 
-  // 가장 안정적이고 범용적인 모델명으로 수정 (1.5-flash 우선 시도 후 gemini-pro 시도)
-  const models = ['gemini-1.5-flash', 'gemini-pro'];
+  // 무료 요금제에서 가장 안정적이고 빠르게 작동하는 공식 모델
+  const models = ['gemini-1.5-flash'];
 
   let lastError = null;
 
@@ -38,13 +38,15 @@ app.post('/api/gemini', async (req, res) => {
         return res.json({ text: data.candidates[0].content.parts[0].text });
       } else {
         lastError = data.error?.message || `모델 ${model} 호출 실패`;
+        console.error(`[서버 로그] ${model} 실패 사유:`, lastError);
       }
     } catch (err) {
       lastError = err.message;
+      console.error(`[서버 로그] ${model} 요청 중 오류:`, err.message);
     }
   }
 
-  console.error('Gemini API Final Error:', lastError);
+  console.error('Gemini API 최종 에러:', lastError);
   res.status(500).json({ error: lastError || 'Gemini API 호출에 실패했습니다.' });
 });
 
